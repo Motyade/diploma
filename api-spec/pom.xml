@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>ru.retailhub</groupId>
+        <artifactId>retailhub-parent</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>api-spec</artifactId>
+    <name>RetailHub API Specification</name>
+    <description>Сгенерированные интерфейсы контроллеров и DTO из openapi.yaml</description>
+
+    <properties>
+        <openapi.spec.path>${project.basedir}/openapi.yaml</openapi.spec.path>
+    </properties>
+
+
+
+    <dependencies>
+        <!-- Spring Web — для аннотаций @RestController, @RequestMapping и т.д. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.yaml</groupId>
+                    <artifactId>snakeyaml</artifactId>
+                </exclusion>
+                <!-- Try excluding lombok if present transitively -->
+                <exclusion>
+                    <groupId>org.projectlombok</groupId>
+                    <artifactId>lombok</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- Jakarta Validation — для @Valid, @NotNull и т.д. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.projectlombok</groupId>
+                    <artifactId>lombok</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- Swagger/OpenAPI аннотации — для @Tag, @Operation -->
+        <dependency>
+            <groupId>io.swagger.core.v3</groupId>
+            <artifactId>swagger-annotations-jakarta</artifactId>
+            <version>${swagger-annotations.version}</version>
+        </dependency>
+
+        <!-- Springdoc — Swagger UI -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>${springdoc.version}</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.openapitools</groupId>
+            <artifactId>jackson-databind-nullable</artifactId>
+            <version>0.2.6</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!--
+                openapi-generator-maven-plugin
+                ================================
+                При `mvn compile` читает openapi.yaml и генерирует:
+                  - Интерфейсы контроллеров (AuthApi, UsersApi, RequestsApi, ...)
+                  - DTO-классы (LoginRequest, TokenResponse, ServiceRequest, ...)
+
+                Ты пишешь: public class AuthController implements AuthApi { ... }
+                и реализуешь методы. Все аннотации уже на месте.
+
+                Сгенерённый код: target/generated-sources/openapi/
+            -->
+            <plugin>
+                <groupId>org.openapitools</groupId>
+                <artifactId>openapi-generator-maven-plugin</artifactId>
+                <version>${openapi-generator.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <!-- Входной файл — наша спецификация -->
+                            <inputSpec>${openapi.spec.path}</inputSpec>
+
+                            <!-- Генератор для Spring Boot -->
+                            <generatorName>spring</generatorName>
+                            <library>spring-boot</library>
+
+                            <!-- Пакеты для сгенерированного кода -->
+                            <apiPackage>ru.retailhub.api</apiPackage>
+                            <modelPackage>ru.retailhub.model</modelPackage>
+
+                            <configOptions>
+                                <!-- ТОЛЬКО интерфейсы, без реализации -->
+                                <interfaceOnly>true</interfaceOnly>
+
+                                <!-- Jakarta EE (Spring Boot 3+/4+) -->
+                                <useSpringBoot3>true</useSpringBoot3>
+
+                                <!-- Группировать по тегам: AuthApi, UsersApi, ... -->
+                                <useTags>true</useTags>
+
+                                <!-- Не использовать jackson-databind-nullable -->
+                                <openApiNullable>false</openApiNullable>
+
+                                <!-- java.time для дат -->
+                                <dateLibrary>java8</dateLibrary>
+
+                                <!-- Springdoc аннотации вместо Swagger 2 -->
+                                <documentationProvider>springdoc</documentationProvider>
+                            </configOptions>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: retailhub-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: retailhub
+      POSTGRES_USER: retailhub
+      POSTGRES_PASSWORD: secret
+    ports:
+      - "5434:5432"
+    volumes:
+      - retailhub-data:/var/lib/postgresql/data
+
+volumes:
+  retailhub-data:

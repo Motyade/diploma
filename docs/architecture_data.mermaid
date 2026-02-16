@@ -1,0 +1,85 @@
+erDiagram
+    %% 1. Store Hierarchy
+    STORE ||--|{ DEPARTMENT : "contains"
+    STORE ||--|{ USER : "employs"
+    STORE ||--|{ SHIFT : "tracks"
+    STORE ||--|{ REQUEST : "owns"
+
+    STORE {
+        uuid id PK
+        string name
+        string timezone
+    }
+
+    DEPARTMENT {
+        uuid id PK
+        uuid store_id FK
+        string name
+    }
+
+    %% 2. Staffing & Auth
+    USER ||--|{ SHIFT : "logs"
+    USER ||--|{ USER_DEVICE : "has"
+    USER ||--|{ NOTIFICATION : "receives"
+    USER ||--o{ REQUEST : "assigned_to"
+    USER ||--|{ DEPARTMENT_EMPLOYEE : "competence_in"
+    
+    DEPARTMENT ||--|{ DEPARTMENT_EMPLOYEE : "staffed_by"
+
+    USER {
+        uuid id PK
+        uuid store_id FK
+        string phone_number UK
+        string role "MANAGER, CONSULTANT"
+        string current_status "OFFLINE, ACTIVE, BUSY"
+    }
+
+    DEPARTMENT_EMPLOYEE {
+        uuid id PK
+        uuid user_id FK
+        uuid department_id FK
+        timestamp assigned_at
+    }
+
+    SHIFT {
+        uuid id PK
+        uuid user_id FK
+        timestamp started_at
+        timestamp ended_at
+    }
+
+    %% 3. Dispatch Core
+    DEPARTMENT ||--o{ QR_CODE : "has"
+    DEPARTMENT ||--o{ REQUEST : "target"
+    QR_CODE ||--o{ REQUEST : "generates"
+
+    QR_CODE {
+        uuid id PK
+        uuid department_id FK
+        uuid token UK "Unique QR content"
+        string label
+    }
+
+    REQUEST {
+        uuid id PK
+        uuid department_id FK
+        uuid assigned_user_id FK "Nullable"
+        string status "CREATED, ASSIGNED, COMPLETED"
+        uuid client_session_token "Anonymous Client"
+        timestamp created_at
+    }
+
+    %% 4. Notifications
+    USER_DEVICE {
+        uuid id PK
+        uuid user_id FK
+        string fcm_token UK
+        string device_info
+    }
+
+    NOTIFICATION {
+        uuid id PK
+        uuid user_id FK
+        string title
+        boolean is_read
+    }

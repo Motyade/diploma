@@ -1,0 +1,38 @@
+graph TD
+    Client[Mobile App / Web] -->|HTTPS| Gateway[API Gateway / Nginx]
+    Gateway -->|REST| App[Spring Boot Monolith]
+    
+    subgraph "RetailHub Backend Services"
+        App --> Auth[Auth Service]
+        App --> Req[Request Service]
+        App --> User[Consultant Service]
+        App --> Store[Store Service]
+        App --> Notif[Notification Service]
+        
+        %% Database Interaction (Synchronous + Locking)
+        Auth -->|Target: users, roles| DB[(PostgreSQL)]
+        Req -->|Target: requests| DB
+        User -->|Target: shifts| DB
+        Store -->|Target: stores, depts| DB
+        Notif -->|Target: user_devices| DB
+        
+        %% Kafka Interaction (Asynchronous Event Bus)
+        Req -->|Produce: RequestCreatedEvent| Kafka{Kafka Broker}
+        Req -->|Produce: RequestAcceptedEvent| Kafka
+        User -->|Produce: StatusChangedEvent| Kafka
+        
+        Kafka -->|Topic: request-events| Notif
+        Kafka -->|Topic: request-events| Analytics[Analytics Service]
+        Kafka -->|Topic: consultant-events| Dispatch[Dispatch Logic]
+        
+        %% Notification Flow
+        Notif -->|Push Command| FCM[Firebase Cloud Messaging]
+    end
+
+    FCM -.->|Push Notification| Client
+    
+    style Client fill:#f9f,stroke:#333
+    style DB fill:#ff9,stroke:#333
+    style Kafka fill:#f96,stroke:#333,stroke-width:4px
+    style Req fill:#bfb,stroke:#333
+    style Notif fill:#bfb,stroke:#333

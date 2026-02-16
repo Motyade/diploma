@@ -1,0 +1,15 @@
+package ru.retailhub.user.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import ru.retailhub.user.entity.User;
+
+import java.util.Optional;
+import java.util.UUID;
+
+public interface UserRepository extends JpaRepository<User, UUID> {
+
+    /** Поиск по телефону — для логина. */
+    Optional<User> findByPhoneNumber(String phoneNumber);
+
+    boolean existsByPhoneNumber(String phoneNumber);
+}
