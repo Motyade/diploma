@@ -21,6 +21,7 @@ import ru.retailhub.store.entity.Store;
 import ru.retailhub.user.entity.Role;
 import ru.retailhub.user.entity.User;
 import ru.retailhub.user.entity.UserStatus;
+import ru.retailhub.user.mapper.UserMapper;
 import ru.retailhub.user.repository.UserRepository;
 
 import java.time.OffsetDateTime;
@@ -43,6 +44,8 @@ class AuthServiceTest {
     private UserRepository userRepository;
     @Mock
     private PasswordEncoder passwordEncoder;
+    @Mock
+    private UserMapper userMapper;
 
     private JwtService jwtService;
     private AuthService authService;
@@ -59,7 +62,7 @@ class AuthServiceTest {
         props.setRefreshTokenExpiration(604800);
         jwtService = new JwtService(props);
 
-        authService = new AuthService(userRepository, jwtService, passwordEncoder);
+        authService = new AuthService(userRepository, jwtService, passwordEncoder, userMapper);
 
         // Тестовые данные
         testStore = new Store();
@@ -192,6 +195,18 @@ class AuthServiceTest {
             SecurityContextHolder.setContext(secCtx);
 
             when(userRepository.findById(testUser.getId())).thenReturn(Optional.of(testUser));
+
+            // Mock UserMapper behavior
+            UserProfile mockProfile = new UserProfile();
+            mockProfile.setId(testUser.getId());
+            mockProfile.setPhoneNumber("+79991234567");
+            mockProfile.setFirstName("Иван");
+            mockProfile.setLastName("Петров");
+            mockProfile.setRole(UserProfile.RoleEnum.CONSULTANT);
+            mockProfile.setCurrentStatus(UserProfile.CurrentStatusEnum.OFFLINE);
+            mockProfile.setStoreId(testStore.getId());
+
+            when(userMapper.toUserProfile(testUser)).thenReturn(mockProfile);
 
             UserProfile profile = authService.getCurrentUser();
 

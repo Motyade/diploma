@@ -77,10 +77,11 @@ components:
 
     RequestStatus:
       type: string
-      enum: [CREATED, ASSIGNED, COMPLETED]
+      enum: [CREATED, ASSIGNED, COMPLETED, ESCALATED]
       description: |
         CREATED → ASSIGNED → COMPLETED
         ASSIGNED → CREATED (клиент нажал "Сменить")
+        CREATED → ESCALATED (просрочена)
 
     # --- Auth ---
 
@@ -372,6 +373,10 @@ components:
         id:
           type: string
           format: uuid
+        client_session_token:
+          type: string
+          format: uuid
+          description: "Секретный токен для polling. Возвращается ТОЛЬКО при создании."
         status:
           $ref: '#/components/schemas/RequestStatus'
         department_name:

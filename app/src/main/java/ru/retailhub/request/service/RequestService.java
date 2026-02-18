@@ -26,22 +26,31 @@ public class RequestService {
     // private final StoreService storeService; // OpenFeign client in MS
 
     @Transactional
-    public void createRequest(String qrToken) {
-        // 1. Validate QR (call Store Service)
-        // 2. Save Request(status=CREATED)
-        // 3. kafkaProducer.send("request-events", new RequestCreatedEvent(...));
+    public ru.retailhub.request.entity.Request createRequest(String qrToken) {
+        ru.retailhub.request.entity.Request request = new ru.retailhub.request.entity.Request();
+        request.setStatus(ru.retailhub.request.entity.RequestStatus.CREATED);
+        request.setClientSessionToken(java.util.UUID.randomUUID());
+        // TODO: Validate QR and set store/department
+
+        return requestRepository.save(request);
     }
 
     @Transactional
-    public void assignRequest(java.util.UUID requestId, java.util.UUID userId) {
-        // 1. Lock Request (Optimistic Locking)
-        // 2. Update status=ASSIGNED, assignedUser=userId
-        // 3. kafkaProducer.send("request-events", new RequestAssignedEvent(...));
+    public ru.retailhub.request.entity.Request assignRequest(java.util.UUID requestId, java.util.UUID userId) {
+        ru.retailhub.request.entity.Request request = requestRepository.findById(requestId)
+                .orElseThrow(() -> new RuntimeException("Request not found"));
+        request.setStatus(ru.retailhub.request.entity.RequestStatus.ASSIGNED);
+        request.setAssignedAt(java.time.OffsetDateTime.now());
+        // TODO: Validate user and set assignedUser
+        return requestRepository.save(request);
     }
 
     @Transactional
-    public void completeRequest(java.util.UUID requestId) {
-        // 1. Update status=COMPLETED
-        // 2. Metrics?
+    public ru.retailhub.request.entity.Request completeRequest(java.util.UUID requestId) {
+        ru.retailhub.request.entity.Request request = requestRepository.findById(requestId)
+                .orElseThrow(() -> new RuntimeException("Request not found"));
+        request.setStatus(ru.retailhub.request.entity.RequestStatus.COMPLETED);
+        request.setCompletedAt(java.time.OffsetDateTime.now());
+        return requestRepository.save(request);
     }
 }

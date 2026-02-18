@@ -17,5 +17,4 @@ public class FlywayProperties {
     private List<String> locations = new ArrayList<>();
     private boolean baselineOnMigrate = false;
     private String baselineVersion = "0";
-
 }

@@ -8,8 +8,8 @@ import ru.retailhub.model.LoginRequest;
 import ru.retailhub.model.RefreshRequest;
 import ru.retailhub.model.TokenResponse;
 import ru.retailhub.model.UserProfile;
-import ru.retailhub.model.UserProfileDepartmentsInner;
 import ru.retailhub.user.entity.User;
+import ru.retailhub.user.mapper.UserMapper;
 import ru.retailhub.user.repository.UserRepository;
 
 import java.util.UUID;
@@ -19,9 +19,9 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Сервис аутентификации.
  *
- * Логин:     телефон + пароль → access + refresh токены
- * Refresh:   refresh-токен → новая пара токенов
- * Me:        access-токен → профиль пользователя
+ * Логин: телефон + пароль → access + refresh токены
+ * Refresh: refresh-токен → новая пара токенов
+ * Me: access-токен → профиль пользователя
  */
 @Service
 @RequiredArgsConstructor
@@ -31,6 +31,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
+    private final UserMapper userMapper;
 
     /**
      * POST /auth/login
@@ -77,7 +78,7 @@ public class AuthService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AuthException("Пользователь не найден"));
 
-        return toUserProfile(user);
+        return userMapper.toUserProfile(user);
     }
 
     // --- Приватные вспомогательные методы ---
@@ -92,28 +93,6 @@ public class AuthService {
         response.setTokenType("Bearer");
         response.setExpiresIn(jwtService.getAccessTokenExpirationSeconds());
         return response;
-    }
-
-    private UserProfile toUserProfile(User user) {
-        UserProfile profile = new UserProfile();
-        profile.setId(user.getId());
-        profile.setStoreId(user.getStore().getId());
-        profile.setPhoneNumber(user.getPhoneNumber());
-        profile.setFirstName(user.getFirstName());
-        profile.setLastName(user.getLastName());
-        profile.setRole(UserProfile.RoleEnum.fromValue(user.getRole().name()));
-        profile.setCurrentStatus(UserProfile.CurrentStatusEnum.fromValue(user.getCurrentStatus().name()));
-        profile.setCreatedAt(user.getCreatedAt());
-
-        // Отделы консультанта
-        user.getDepartmentAssignments().forEach(de -> {
-            UserProfileDepartmentsInner dept = new UserProfileDepartmentsInner();
-            dept.setId(de.getDepartment().getId());
-            dept.setName(de.getDepartment().getName());
-            profile.addDepartmentsItem(dept);
-        });
-
-        return profile;
     }
 
     // --- Исключение ---
