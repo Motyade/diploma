@@ -140,7 +140,7 @@ components:
           type: string
         role:
           $ref: '#/components/schemas/Role'
-        current_status:
+        current_status: 
           $ref: '#/components/schemas/UserStatus'
         departments:
           type: array
@@ -329,6 +329,9 @@ components:
           format: uuid
         department_name:
           type: string
+        is_escalated:
+          type: boolean
+          description: "True, если заявка просрочена (> 5 мин) и эскалирована менеджеру"
         assigned_user:
           $ref: '#/components/schemas/AssignedConsultant'
         status:
@@ -381,7 +384,7 @@ components:
           description: true если прошло >= 1 мин - кнопка "Напомнить"
         can_reassign:
           type: boolean
-          description: true если прошло >= 2 мин - кнопка "Сменить"
+          description: true если прошло >= 3 мин - кнопка "Сменить"
         created_at:
           type: string
           format: date-time
@@ -1050,7 +1053,7 @@ paths:
       tags: [Requests]
       summary: Статус заявки (polling клиентом, публичный)
       description: |
-        Ответ включает can_remind (>= 1 мин) и can_reassign (>= 2 мин).
+        Ответ включает can_remind (>= 1 мин) и can_reassign (>= 3 мин).
       security: []
       parameters:
         - name: requestId
@@ -1161,7 +1164,7 @@ paths:
   /requests/{requestId}/reassign:
     post:
       tags: [Requests]
-      summary: Сменить консультанта (клиент, >= 2 мин)
+      summary: Сменить консультанта (клиент, >= 3 мин)
       description: Заявка → CREATED, предыдущий консультант → ACTIVE. Новый поиск.
       security: []
       parameters:
@@ -1185,7 +1188,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ClientRequestView'
         '400':
-          description: Рано (< 2 мин) или не ASSIGNED
+          description: Рано (< 3 мин) или не ASSIGNED
           content:
             application/json:
               schema:

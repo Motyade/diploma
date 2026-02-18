@@ -15,4 +15,4 @@ mvnw
 mvnw.cmd
 .mvn
 HELP.md
-docs/
+# docs/ enabled for commit
