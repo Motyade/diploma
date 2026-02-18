@@ -83,4 +83,7 @@ public class Request {
 
     @Column(name = "escalated_at")
     private OffsetDateTime escalatedAt;
+
+    @Version
+    private Long version;
 }
