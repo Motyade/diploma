@@ -1,4 +1,4 @@
-package ru.retailhub.shift.entity;
+package ru.retailhub.user.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import ru.retailhub.store.entity.Store;
-import ru.retailhub.user.entity.User;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -15,6 +14,8 @@ import java.util.UUID;
  * Смена консультанта — простая модель start/stop.
  * Консультант нажимает "Начать смену" / "Закончить смену".
  * Используется для аналитики: сколько отработал, когда.
+ * 
+ * Future Microservice: Part of Employee Service.
  */
 @Entity
 @Table(name = "shifts")
@@ -36,11 +37,13 @@ public class Shift {
     @JoinColumn(name = "store_id", nullable = false)
     private Store store;
 
-    /** Время начала. При clock-in → пользователь ACTIVE. */
+    /** Время начала. При clock-in -> пользователь ACTIVE. */
     @Column(name = "started_at", nullable = false)
     private OffsetDateTime startedAt;
 
-    /** Время окончания. NULL = смена активна. При clock-out → пользователь OFFLINE. */
+    /**
+     * Время окончания. NULL = смена активна. При clock-out -> пользователь OFFLINE.
+     */
     @Column(name = "ended_at")
     private OffsetDateTime endedAt;
 

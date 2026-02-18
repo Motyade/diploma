@@ -1,7 +1,7 @@
-package ru.retailhub.shift.repository;
+package ru.retailhub.user.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import ru.retailhub.shift.entity.Shift;
+import ru.retailhub.user.entity.Shift;
 
 import java.util.List;
 import java.util.Optional;

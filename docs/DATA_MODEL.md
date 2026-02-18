@@ -16,7 +16,7 @@ stores 1──* departments 1──* qr_codes
   │         1──* notifications                    │
   │                                               │
   └──* requests *──1 users (assigned_user_id) ────┘
-```
+``` 
 
 ---
 
