@@ -15,7 +15,7 @@
     <description>Сгенерированные интерфейсы контроллеров и DTO из openapi.yaml</description>
 
     <properties>
-        <openapi.spec.path>${project.basedir}/openapi.yaml</openapi.spec.path>
+        <openapi.spec.path>${project.baseUri}openapi.yaml</openapi.spec.path>
     </properties>
 
 

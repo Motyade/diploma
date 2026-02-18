@@ -102,7 +102,9 @@ CREATE TABLE requests (
     client_session_token  UUID NOT NULL DEFAULT gen_random_uuid(),
     created_at            TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     assigned_at           TIMESTAMP WITH TIME ZONE,
-    completed_at          TIMESTAMP WITH TIME ZONE
+    completed_at          TIMESTAMP WITH TIME ZONE,
+    escalation_level      INT DEFAULT 0, -- 0=Norm, 1=Warning, 2=Manager
+    escalated_at          TIMESTAMP WITH TIME ZONE
 );
 
 COMMENT ON TABLE requests IS 'Заявки на обслуживание - ядро диспетчеризации';
