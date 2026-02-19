@@ -9,10 +9,6 @@ import ru.retailhub.model.ErrorResponse;
 
 import java.time.OffsetDateTime;
 
-/**
- * Глобальный обработчик исключений.
- * Преобразует бизнес-исключения в стандартный ErrorResponse (из OpenAPI).
- */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 

@@ -10,11 +10,7 @@ import ru.retailhub.user.entity.User;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
-/**
- * FCM-устройство пользователя.
- * У одного пользователя может быть несколько (телефон + планшет).
- * Token обновляется при каждом запуске приложения.
- */
+
 @Entity
 @Table(name = "user_devices",
        uniqueConstraints = @UniqueConstraint(columnNames = "fcm_token"))

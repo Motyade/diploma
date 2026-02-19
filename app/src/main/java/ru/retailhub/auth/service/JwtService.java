@@ -3,7 +3,6 @@ package ru.retailhub.auth.service;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,19 +14,11 @@ import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * Сервис для работы с JWT-токенами.
- *
- * Access-токен  — короткоживущий (15 мин), содержит userId + role.
- * Refresh-токен — долгоживущий (7 дней), содержит только userId.
- */
 @Service
 @RequiredArgsConstructor
 public class JwtService {
 
     private final JwtProperties props;
-
-    // --- Генерация ---
 
     public String generateAccessToken(UUID userId, String role) {
         return buildToken(
@@ -45,8 +36,6 @@ public class JwtService {
         );
     }
 
-    // --- Извлечение данных ---
-
     public UUID extractUserId(String token) {
         return UUID.fromString(extractClaims(token).getSubject());
     }
@@ -58,8 +47,6 @@ public class JwtService {
     public String extractTokenType(String token) {
         return extractClaims(token).get("type", String.class);
     }
-
-    // --- Валидация ---
 
     public boolean isValid(String token) {
         try {
@@ -78,12 +65,9 @@ public class JwtService {
         return "refresh".equals(extractTokenType(token));
     }
 
-    /** Время жизни access-токена в секундах (для TokenResponse.expiresIn). */
     public int getAccessTokenExpirationSeconds() {
         return (int) props.getAccessTokenExpiration();
     }
-
-    // --- Внутренние методы ---
 
     private String buildToken(Map<String, ?> claims, String subject, long expirationMs) {
         long now = System.currentTimeMillis();

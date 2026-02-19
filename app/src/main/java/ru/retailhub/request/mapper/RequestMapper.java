@@ -30,8 +30,8 @@ public interface RequestMapper {
 
     @Mapping(target = "departmentName", source = "department.name")
     @Mapping(target = "consultantName", expression = "java(request.getAssignedUser() != null ? request.getAssignedUser().getFirstName() + \" \" + request.getAssignedUser().getLastName() : null)")
-    @Mapping(target = "canRemind", expression = "java(false)") // Placeholder logic
-    @Mapping(target = "canReassign", expression = "java(false)") // Placeholder logic
+    @Mapping(target = "canRemind", expression = "java(false)") 
+    @Mapping(target = "canReassign", expression = "java(false)") 
     @Mapping(target = "clientSessionToken", source = "clientSessionToken")
     ClientRequestView toClientView(Request request);
 }

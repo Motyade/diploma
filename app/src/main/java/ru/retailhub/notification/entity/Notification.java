@@ -10,10 +10,7 @@ import ru.retailhub.user.entity.User;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
-/**
- * Уведомление пользователя (in-app + push).
- * Push идёт через FCM, копия сохраняется здесь для истории.
- */
+
 @Entity
 @Table(name = "notifications")
 @Getter
@@ -38,12 +35,12 @@ public class Notification {
     @Column(nullable = false, length = 50)
     private String type;
 
-    /** JSON-расширение: {"request_id": "...", "action": "OPEN_REQUEST"}. */
+    
     @Column(columnDefinition = "jsonb")
     @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
     private String payload;
 
-    /** Прочитано ли (для бейджа непрочитанных). */
+    
     @Column(name = "is_read", nullable = false)
     private boolean read = false;
 

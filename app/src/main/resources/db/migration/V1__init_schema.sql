@@ -1,17 +1,3 @@
--- ============================================================================
--- V1: Init Schema (Stores, Users, Departments, Dispatch, Notifications)
--- ============================================================================
--- Объединённая миграция включающая:
--- 1. Магазины и отделы
--- 2. Пользователи и смены
--- 3. Диспетчеризация (QR, Заявки)
--- 4. Уведомления и устройства
--- ============================================================================
-
--- ---------------------------------------------------------------------------
--- 1. STORES & DEPARTMENTS
--- ---------------------------------------------------------------------------
-
 CREATE TABLE stores (
     id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name                  VARCHAR(255) NOT NULL,
@@ -32,10 +18,6 @@ CREATE TABLE departments (
 
 COMMENT ON TABLE departments IS 'Отделы магазина - к ним привязываются QR-коды и компетенции консультантов';
 CREATE INDEX idx_departments_store_id ON departments(store_id);
-
--- ---------------------------------------------------------------------------
--- 2. USERS & STAFFING
--- ---------------------------------------------------------------------------
 
 CREATE TABLE users (
     id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -77,10 +59,6 @@ COMMENT ON TABLE shifts IS 'Смены консультантов - проста
 CREATE INDEX idx_shifts_user ON shifts(user_id);
 CREATE INDEX idx_shifts_store_active ON shifts(store_id) WHERE ended_at IS NULL;
 
--- ---------------------------------------------------------------------------
--- 3. DISPATCH (QR & REQUESTS)
--- ---------------------------------------------------------------------------
-
 CREATE TABLE qr_codes (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     department_id   UUID NOT NULL REFERENCES departments(id) ON DELETE CASCADE,
@@ -103,17 +81,13 @@ CREATE TABLE requests (
     created_at            TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     assigned_at           TIMESTAMP WITH TIME ZONE,
     completed_at          TIMESTAMP WITH TIME ZONE,
-    escalation_level      INT DEFAULT 0, -- 0=Norm, 1=Warning, 2=Manager
+    escalation_level      INT DEFAULT 0,
     escalated_at          TIMESTAMP WITH TIME ZONE
 );
 
 COMMENT ON TABLE requests IS 'Заявки на обслуживание - ядро диспетчеризации';
 CREATE INDEX idx_requests_store_department_status ON requests(store_id, department_id, status);
 CREATE INDEX idx_requests_client_session ON requests(client_session_token);
-
--- ---------------------------------------------------------------------------
--- 4. NOTIFICATIONS
--- ---------------------------------------------------------------------------
 
 CREATE TABLE user_devices (
     id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),

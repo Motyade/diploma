@@ -16,18 +16,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Фильтр JWT-аутентификации.
- *
- * Для каждого запроса:
- *   1. Извлекает токен из заголовка Authorization: Bearer {token}
- *   2. Валидирует подпись и expiration
- *   3. Проверяет что это access-токен (не refresh)
- *   4. Устанавливает Authentication в SecurityContext
- *
- * Principal = UUID пользователя (строка).
- * Authorities = ROLE_MANAGER или ROLE_CONSULTANT.
- */
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -50,9 +38,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 String role = jwtService.extractRole(token);
 
                 var auth = new UsernamePasswordAuthenticationToken(
-                        userId.toString(),                              // principal = userId
-                        null,                                           // credentials
-                        List.of(new SimpleGrantedAuthority("ROLE_" + role))  // ROLE_MANAGER / ROLE_CONSULTANT
+                        userId.toString(),
+                        null,
+                        List.of(new SimpleGrantedAuthority("ROLE_" + role))
                 );
 
                 SecurityContextHolder.getContext().setAuthentication(auth);

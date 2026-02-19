@@ -9,10 +9,7 @@ import ru.retailhub.store.entity.Department;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
-/**
- * Матрица компетенций: какой консультант в каких отделах может работать.
- * Один консультант → несколько отделов. Один отдел → несколько консультантов.
- */
+
 @Entity
 @Table(name = "department_employees",
        uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "department_id"}))

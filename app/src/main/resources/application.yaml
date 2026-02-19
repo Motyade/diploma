@@ -2,9 +2,6 @@ spring:
   application:
     name: retailhub
 
-  # =============================================
-  # PostgreSQL 17 Docker (localhost:5434)
-  # =============================================
   datasource:
     url: jdbc:postgresql://localhost:5434/retailhub
     username: retailhub
@@ -40,18 +37,13 @@ spring:
     baseline-on-migrate: true
     baseline-version: 0
 
-# =============================================
-# JWT
-# =============================================
 app:
   jwt:
-    secret: "CHANGE-ME-IN-PRODUCTION-min-256-bit-secret-key-here-1234567890"
-    access-token-expiration: 900       # 15 минут (секунды)
-    refresh-token-expiration: 604800   # 7 дней (секунды)
+    # python secrets.token_urlsafe(64)
+    secret: "beAxeaveJiJRK6CIwR_bp-DxQAH9BBRWkv5HfhZOVHVU4JWGA6MFSndFPFd_lE7keRxVpNcuKfopDNeBMfJRBQ"
+    access-token-expiration: 900
+    refresh-token-expiration: 604800
 
-# =============================================
-# Swagger UI — http://localhost:8080/swagger-ui.html
-# =============================================
 springdoc:
   swagger-ui:
     path: /swagger-ui.html

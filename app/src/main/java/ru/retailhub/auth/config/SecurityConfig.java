@@ -13,14 +13,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-/**
- * Конфигурация Spring Security.
- *
- * Принципы:
- *   - Stateless (JWT, без сессий)
- *   - Публичные: login, refresh, QR scan, Swagger, создание заявки, polling
- *   - Всё остальное — через JWT
- */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -35,13 +27,9 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // --- Публичные эндпоинты ---
                         .requestMatchers("/auth/login", "/auth/refresh", "/error").permitAll()
-                        .requestMatchers("/qr-codes/scan/**").permitAll()            // клиент сканирует QR
-                        .requestMatchers(HttpMethod.POST, "/requests").permitAll()     // клиент создаёт заявку
-                        .requestMatchers(HttpMethod.GET, "/requests/*/status").permitAll()  // polling
+                        .requestMatchers("/qr-codes/scanstatus").permitAll()
 
-                        // --- Swagger UI ---
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
@@ -49,7 +37,6 @@ public class SecurityConfig {
                                 "/v3/api-docs"
                         ).permitAll()
 
-                        // --- Всё остальное — JWT ---
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)

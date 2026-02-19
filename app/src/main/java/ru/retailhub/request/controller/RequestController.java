@@ -5,13 +5,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import ru.retailhub.api.RequestsApi;
-import ru.retailhub.model.ClientRequestView;
-import ru.retailhub.model.CreateRequestRequest;
-import ru.retailhub.model.ServiceRequest;
+import ru.retailhub.model.*;
 import ru.retailhub.request.entity.Request;
 import ru.retailhub.request.mapper.RequestMapper;
 import ru.retailhub.request.service.RequestService;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 @RestController
@@ -28,18 +27,23 @@ public class RequestController implements RequestsApi {
     }
 
     @Override
+    public ResponseEntity<RequestsGet200Response> requestsGet(RequestStatus status, UUID departmentId, LocalDate dateFrom, LocalDate dateTo, Integer page, Integer size) {
+        return RequestsApi.super.requestsGet(status, departmentId, dateFrom, dateTo, page, size);
+    }
+
+    @Override
     public ResponseEntity<ClientRequestView> requestsRequestIdGet(UUID requestId, UUID session) {
-        // TODO: VALIDATE SESSION TOKEN!
-        // For now just return the view
-        // We might need a method in service to get by ID
-        // requestService.getRequest(requestId);
+        
+        
+        
+        
         return RequestsApi.super.requestsRequestIdGet(requestId, session);
     }
 
     @Override
     public ResponseEntity<ServiceRequest> requestsRequestIdAssignPost(UUID requestId) {
-        // In real life consultantId comes from Security Context
-        UUID consultantId = UUID.randomUUID(); // TODO: get from SecurityContext
+        
+        UUID consultantId = UUID.randomUUID(); 
         Request request = requestService.assignRequest(requestId, consultantId);
         return ResponseEntity.ok(requestMapper.toDto(request));
     }

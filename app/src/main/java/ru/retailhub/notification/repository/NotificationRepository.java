@@ -9,9 +9,9 @@ import java.util.UUID;
 
 public interface NotificationRepository extends JpaRepository<Notification, UUID> {
 
-    /** Уведомления пользователя с пагинацией (новые первыми). */
+    
     Page<Notification> findByUserIdOrderByCreatedAtDesc(UUID userId, Pageable pageable);
 
-    /** Количество непрочитанных — для бейджа. */
+    
     long countByUserIdAndReadFalse(UUID userId);
 }

@@ -9,9 +9,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
-/**
- * Отдел магазина — к нему привязываются QR-коды и компетенции консультантов.
- */
+
 @Entity
 @Table(name = "departments")
 @Getter

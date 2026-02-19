@@ -33,10 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
-/**
- * Unit-тесты для AuthService.
- * Репозиторий и PasswordEncoder замокированы.
- */
+
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
 
@@ -55,7 +52,7 @@ class AuthServiceTest {
 
     @BeforeEach
     void setUp() {
-        // Реальный JwtService с тестовым секретом
+        
         JwtProperties props = new JwtProperties();
         props.setSecret("test-secret-key-that-is-at-least-256-bits-long-for-hmac-sha");
         props.setAccessTokenExpiration(900);
@@ -64,7 +61,7 @@ class AuthServiceTest {
 
         authService = new AuthService(userRepository, jwtService, passwordEncoder, userMapper);
 
-        // Тестовые данные
+        
         testStore = new Store();
         testStore.setId(UUID.randomUUID());
         testStore.setName("ТЦ Мега");
@@ -101,11 +98,11 @@ class AuthServiceTest {
             assertThat(response.getTokenType()).isEqualTo("Bearer");
             assertThat(response.getExpiresIn()).isEqualTo(900);
 
-            // Проверяем что в access-токене правильный userId
+            
             UUID extractedId = jwtService.extractUserId(response.getAccessToken());
             assertThat(extractedId).isEqualTo(testUser.getId());
 
-            // Проверяем роль
+            
             String extractedRole = jwtService.extractRole(response.getAccessToken());
             assertThat(extractedRole).isEqualTo("CONSULTANT");
         }
@@ -187,7 +184,7 @@ class AuthServiceTest {
         @Test
         @DisplayName("Авторизованный пользователь → UserProfile")
         void getCurrentUser_returnsProfile() {
-            // Имитируем SecurityContext
+            
             Authentication auth = mock(Authentication.class);
             when(auth.getPrincipal()).thenReturn(testUser.getId().toString());
             SecurityContext secCtx = mock(SecurityContext.class);
@@ -196,7 +193,7 @@ class AuthServiceTest {
 
             when(userRepository.findById(testUser.getId())).thenReturn(Optional.of(testUser));
 
-            // Mock UserMapper behavior
+            
             UserProfile mockProfile = new UserProfile();
             mockProfile.setId(testUser.getId());
             mockProfile.setPhoneNumber("+79991234567");

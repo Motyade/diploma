@@ -10,14 +10,6 @@ import ru.retailhub.model.RefreshRequest;
 import ru.retailhub.model.TokenResponse;
 import ru.retailhub.model.UserProfile;
 
-/**
- * Контроллер аутентификации — реализует сгенерированный интерфейс AuthApi.
- *
- * Эндпоинты:
- *   POST /auth/login    — логин по номеру телефона
- *   POST /auth/refresh  — обновление access-токена
- *   GET  /auth/me       — профиль текущего пользователя
- */
 @RestController
 @RequiredArgsConstructor
 public class AuthController implements AuthApi {

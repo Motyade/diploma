@@ -29,7 +29,7 @@ public class Store {
     @Column(nullable = false)
     private String address;
 
-    /** IANA timezone, например "Europe/Moscow". Для корректного отображения времени смен. */
+    
     @Column(nullable = false)
     private String timezone = "Europe/Moscow";
 
@@ -41,7 +41,7 @@ public class Store {
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
-    // --- Связи ---
+    
 
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Department> departments = new ArrayList<>();

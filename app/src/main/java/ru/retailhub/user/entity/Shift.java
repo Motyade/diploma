@@ -10,13 +10,6 @@ import ru.retailhub.store.entity.Store;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
-/**
- * Смена консультанта — простая модель start/stop.
- * Консультант нажимает "Начать смену" / "Закончить смену".
- * Используется для аналитики: сколько отработал, когда.
- * 
- * Future Microservice: Part of Employee Service.
- */
 @Entity
 @Table(name = "shifts")
 @Getter
@@ -32,18 +25,13 @@ public class Shift {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    /** Магазин (денормализовано из users.store_id для быстрой аналитики). */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "store_id", nullable = false)
     private Store store;
 
-    /** Время начала. При clock-in -> пользователь ACTIVE. */
     @Column(name = "started_at", nullable = false)
     private OffsetDateTime startedAt;
 
-    /**
-     * Время окончания. NULL = смена активна. При clock-out -> пользователь OFFLINE.
-     */
     @Column(name = "ended_at")
     private OffsetDateTime endedAt;
 
@@ -51,7 +39,9 @@ public class Shift {
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 
-    /** Проверка: смена ещё активна? */
+    @Column(name = "penalties_count", nullable = false)
+    private int penaltiesCount = 0;
+
     public boolean isActive() {
         return endedAt == null;
     }

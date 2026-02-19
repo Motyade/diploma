@@ -16,13 +16,6 @@ import java.util.UUID;
 
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Сервис аутентификации.
- *
- * Логин: телефон + пароль → access + refresh токены
- * Refresh: refresh-токен → новая пара токенов
- * Me: access-токен → профиль пользователя
- */
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -33,10 +26,6 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
 
-    /**
-     * POST /auth/login
-     * Проверяет phone + password → возвращает пару JWT.
-     */
     public TokenResponse login(LoginRequest request) {
         User user = userRepository.findByPhoneNumber(request.getPhoneNumber())
                 .orElseThrow(() -> new AuthException("Неверный номер телефона или пароль"));
@@ -48,10 +37,6 @@ public class AuthService {
         return buildTokenResponse(user);
     }
 
-    /**
-     * POST /auth/refresh
-     * Валидирует refresh-токен → возвращает новую пару JWT.
-     */
     public TokenResponse refresh(RefreshRequest request) {
         String refreshToken = request.getRefreshToken();
 
@@ -66,10 +51,6 @@ public class AuthService {
         return buildTokenResponse(user);
     }
 
-    /**
-     * GET /auth/me
-     * Возвращает профиль текущего пользователя из SecurityContext.
-     */
     public UserProfile getCurrentUser() {
         String userIdStr = (String) SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal();
@@ -80,8 +61,6 @@ public class AuthService {
 
         return userMapper.toUserProfile(user);
     }
-
-    // --- Приватные вспомогательные методы ---
 
     private TokenResponse buildTokenResponse(User user) {
         String accessToken = jwtService.generateAccessToken(user.getId(), user.getRole().name());
@@ -94,8 +73,6 @@ public class AuthService {
         response.setExpiresIn(jwtService.getAccessTokenExpirationSeconds());
         return response;
     }
-
-    // --- Исключение ---
 
     public static class AuthException extends RuntimeException {
         public AuthException(String message) {

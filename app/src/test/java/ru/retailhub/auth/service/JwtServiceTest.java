@@ -10,10 +10,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * Unit-тесты для JwtService.
- * Проверяют генерацию, валидацию и извлечение данных из JWT-токенов.
- */
+
 class JwtServiceTest {
 
     private JwtService jwtService;
@@ -38,7 +35,7 @@ class JwtServiceTest {
             String token = jwtService.generateAccessToken(userId, "MANAGER");
 
             assertThat(token).isNotBlank();
-            assertThat(token.split("\\.")).hasSize(3); // JWT = header.payload.signature
+            assertThat(token.split("\\.")).hasSize(3); 
         }
 
         @Test
@@ -120,7 +117,7 @@ class JwtServiceTest {
         @Test
         @DisplayName("Токен с другим секретом не проходит валидацию")
         void isValid_differentSecret_returnsFalse() {
-            // Генерируем токен с другим секретом
+            
             JwtProperties otherProps = new JwtProperties();
             otherProps.setSecret("completely-different-secret-key-that-is-also-long-enough-1234");
             otherProps.setAccessTokenExpiration(900);

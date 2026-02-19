@@ -24,10 +24,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-/**
- * Тест AuthController с standalone MockMvc (без Spring context).
- * Проверяет HTTP-контракт: статусы, JSON-поля, маппинг на AuthService.
- */
+
 @ExtendWith(MockitoExtension.class)
 class AuthControllerTest {
 
@@ -48,7 +45,7 @@ class AuthControllerTest {
                 .build();
     }
 
-    // ===== POST /auth/login =====
+    
 
     @Test
     @DisplayName("POST /auth/login — успешный логин → 200 + токены")
@@ -89,7 +86,7 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.message").value("Неверный номер телефона или пароль"));
     }
 
-    // ===== POST /auth/refresh =====
+    
 
     @Test
     @DisplayName("POST /auth/refresh — валидный токен → 200 + новые токены")
@@ -129,7 +126,7 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.error").value("AUTH_ERROR"));
     }
 
-    // ===== GET /auth/me =====
+    
 
     @Test
     @DisplayName("GET /auth/me → 200 + UserProfile")
