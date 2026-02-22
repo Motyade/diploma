@@ -5,4 +5,5 @@ public enum RequestStatus {
     ASSIGNED,
     COMPLETED,
     ESCALATED
+    // CANCELLED
 }
