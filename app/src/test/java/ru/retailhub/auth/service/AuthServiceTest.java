@@ -33,7 +33,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
-
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
 
@@ -52,7 +51,7 @@ class AuthServiceTest {
 
     @BeforeEach
     void setUp() {
-        
+
         JwtProperties props = new JwtProperties();
         props.setSecret("test-secret-key-that-is-at-least-256-bits-long-for-hmac-sha");
         props.setAccessTokenExpiration(900);
@@ -61,7 +60,6 @@ class AuthServiceTest {
 
         authService = new AuthService(userRepository, jwtService, passwordEncoder, userMapper);
 
-        
         testStore = new Store();
         testStore.setId(UUID.randomUUID());
         testStore.setName("ТЦ Мега");
@@ -80,11 +78,11 @@ class AuthServiceTest {
     }
 
     @Nested
-    @DisplayName("POST /auth/login")
+    // @DisplayName("POST /auth/login")
     class Login {
 
         @Test
-        @DisplayName("Успешный логин → возвращает пару токенов")
+        // @DisplayName("Успешный логин → возвращает пару токенов")
         void login_validCredentials_returnsTokenPair() {
             LoginRequest request = new LoginRequest("+79991234567", "password123");
 
@@ -98,17 +96,15 @@ class AuthServiceTest {
             assertThat(response.getTokenType()).isEqualTo("Bearer");
             assertThat(response.getExpiresIn()).isEqualTo(900);
 
-            
             UUID extractedId = jwtService.extractUserId(response.getAccessToken());
             assertThat(extractedId).isEqualTo(testUser.getId());
 
-            
             String extractedRole = jwtService.extractRole(response.getAccessToken());
             assertThat(extractedRole).isEqualTo("CONSULTANT");
         }
 
         @Test
-        @DisplayName("Неверный телефон → AuthException")
+        // @DisplayName("Неверный телефон → AuthException")
         void login_wrongPhone_throwsAuthException() {
             LoginRequest request = new LoginRequest("+70000000000", "password123");
 
@@ -120,7 +116,7 @@ class AuthServiceTest {
         }
 
         @Test
-        @DisplayName("Неверный пароль → AuthException")
+        // @DisplayName("Неверный пароль → AuthException")
         void login_wrongPassword_throwsAuthException() {
             LoginRequest request = new LoginRequest("+79991234567", "wrongpassword");
 
@@ -134,11 +130,11 @@ class AuthServiceTest {
     }
 
     @Nested
-    @DisplayName("POST /auth/refresh")
+    // @DisplayName("POST /auth/refresh")
     class Refresh {
 
         @Test
-        @DisplayName("Валидный refresh-токен → новая пара токенов")
+        // @DisplayName("Валидный refresh-токен → новая пара токенов")
         void refresh_validToken_returnsNewTokenPair() {
             String refreshToken = jwtService.generateRefreshToken(testUser.getId());
             RefreshRequest request = new RefreshRequest();
@@ -154,7 +150,7 @@ class AuthServiceTest {
         }
 
         @Test
-        @DisplayName("Невалидный refresh-токен → AuthException")
+        // @DisplayName("Невалидный refresh-токен → AuthException")
         void refresh_invalidToken_throwsAuthException() {
             RefreshRequest request = new RefreshRequest();
             request.setRefreshToken("garbage.token.here");
@@ -165,7 +161,7 @@ class AuthServiceTest {
         }
 
         @Test
-        @DisplayName("Access-токен вместо refresh → AuthException")
+        // @DisplayName("Access-токен вместо refresh → AuthException")
         void refresh_accessTokenInsteadOfRefresh_throwsAuthException() {
             String accessToken = jwtService.generateAccessToken(testUser.getId(), "MANAGER");
             RefreshRequest request = new RefreshRequest();
@@ -178,13 +174,13 @@ class AuthServiceTest {
     }
 
     @Nested
-    @DisplayName("GET /auth/me")
+    // @DisplayName("GET /auth/me")
     class GetCurrentUser {
 
         @Test
-        @DisplayName("Авторизованный пользователь → UserProfile")
+        // @DisplayName("Авторизованный пользователь → UserProfile")
         void getCurrentUser_returnsProfile() {
-            
+
             Authentication auth = mock(Authentication.class);
             when(auth.getPrincipal()).thenReturn(testUser.getId().toString());
             SecurityContext secCtx = mock(SecurityContext.class);
@@ -193,7 +189,6 @@ class AuthServiceTest {
 
             when(userRepository.findById(testUser.getId())).thenReturn(Optional.of(testUser));
 
-            
             UserProfile mockProfile = new UserProfile();
             mockProfile.setId(testUser.getId());
             mockProfile.setPhoneNumber("+79991234567");

@@ -8,8 +8,8 @@ public class PasswordGeneratorTest {
     @Test
     void generatePasswordHash() {
         var encoder = new BCryptPasswordEncoder();
-        String rawPassword = "password123";
+        String rawPassword = "fedya123";
         String hash = encoder.encode(rawPassword);
-        System.out.println("Encoded password: " + hash);
+        System.out.println("parol: " + hash);
     }
 }

@@ -10,7 +10,6 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-
 class JwtServiceTest {
 
     private JwtService jwtService;
@@ -25,21 +24,21 @@ class JwtServiceTest {
     }
 
     @Nested
-    @DisplayName("Генерация токенов")
+    // @DisplayName("Генерация токенов")
     class TokenGeneration {
 
         @Test
-        @DisplayName("Access-токен генерируется и не пустой")
+        // @DisplayName("Access-токен генерируется и не пустой")
         void generateAccessToken_returnsNonEmptyString() {
             UUID userId = UUID.randomUUID();
             String token = jwtService.generateAccessToken(userId, "MANAGER");
 
             assertThat(token).isNotBlank();
-            assertThat(token.split("\\.")).hasSize(3); 
+            assertThat(token.split("\\.")).hasSize(3);
         }
 
         @Test
-        @DisplayName("Refresh-токен генерируется и не пустой")
+        // @DisplayName("Refresh-токен генерируется и не пустой")
         void generateRefreshToken_returnsNonEmptyString() {
             UUID userId = UUID.randomUUID();
             String token = jwtService.generateRefreshToken(userId);
@@ -48,7 +47,7 @@ class JwtServiceTest {
         }
 
         @Test
-        @DisplayName("Access и refresh токены различаются")
+        // @DisplayName("Access и refresh токены различаются")
         void accessAndRefreshTokens_areDifferent() {
             UUID userId = UUID.randomUUID();
             String access = jwtService.generateAccessToken(userId, "CONSULTANT");
@@ -59,11 +58,11 @@ class JwtServiceTest {
     }
 
     @Nested
-    @DisplayName("Извлечение данных из токена")
+    // @DisplayName("Извлечение данных из токена")
     class DataExtraction {
 
         @Test
-        @DisplayName("Из access-токена извлекается userId")
+        // @DisplayName("Из access-токена извлекается userId")
         void extractUserId_fromAccessToken() {
             UUID userId = UUID.randomUUID();
             String token = jwtService.generateAccessToken(userId, "MANAGER");
@@ -72,7 +71,7 @@ class JwtServiceTest {
         }
 
         @Test
-        @DisplayName("Из access-токена извлекается роль")
+        // @DisplayName("Из access-токена извлекается роль")
         void extractRole_fromAccessToken() {
             UUID userId = UUID.randomUUID();
             String token = jwtService.generateAccessToken(userId, "CONSULTANT");
@@ -81,7 +80,7 @@ class JwtServiceTest {
         }
 
         @Test
-        @DisplayName("Из refresh-токена извлекается userId")
+        // @DisplayName("Из refresh-токена извлекается userId")
         void extractUserId_fromRefreshToken() {
             UUID userId = UUID.randomUUID();
             String token = jwtService.generateRefreshToken(userId);
@@ -91,11 +90,11 @@ class JwtServiceTest {
     }
 
     @Nested
-    @DisplayName("Валидация токенов")
+    // @DisplayName("Валидация токенов")
     class TokenValidation {
 
         @Test
-        @DisplayName("Валидный access-токен проходит проверку")
+        // @DisplayName("Валидный access-токен проходит проверку")
         void isValid_validAccessToken_returnsTrue() {
             String token = jwtService.generateAccessToken(UUID.randomUUID(), "MANAGER");
 
@@ -103,21 +102,21 @@ class JwtServiceTest {
         }
 
         @Test
-        @DisplayName("Мусорная строка не проходит валидацию")
+        // @DisplayName("Мусорная строка не проходит валидацию")
         void isValid_garbageString_returnsFalse() {
             assertThat(jwtService.isValid("not.a.jwt")).isFalse();
         }
 
         @Test
-        @DisplayName("Пустая строка не проходит валидацию")
+        // @DisplayName("Пустая строка не проходит валидацию")
         void isValid_emptyString_returnsFalse() {
             assertThat(jwtService.isValid("")).isFalse();
         }
 
         @Test
-        @DisplayName("Токен с другим секретом не проходит валидацию")
+        // @DisplayName("Токен с другим секретом не проходит валидацию")
         void isValid_differentSecret_returnsFalse() {
-            
+
             JwtProperties otherProps = new JwtProperties();
             otherProps.setSecret("completely-different-secret-key-that-is-also-long-enough-1234");
             otherProps.setAccessTokenExpiration(900);
@@ -131,11 +130,11 @@ class JwtServiceTest {
     }
 
     @Nested
-    @DisplayName("Типы токенов")
+    // @DisplayName("Типы токенов")
     class TokenTypes {
 
         @Test
-        @DisplayName("isAccessToken true для access-токена")
+        // @DisplayName("isAccessToken true для access-токена")
         void isAccessToken_forAccessToken_returnsTrue() {
             String token = jwtService.generateAccessToken(UUID.randomUUID(), "MANAGER");
 
@@ -144,7 +143,7 @@ class JwtServiceTest {
         }
 
         @Test
-        @DisplayName("isRefreshToken true для refresh-токена")
+        // @DisplayName("isRefreshToken true для refresh-токена")
         void isRefreshToken_forRefreshToken_returnsTrue() {
             String token = jwtService.generateRefreshToken(UUID.randomUUID());
 
@@ -154,7 +153,8 @@ class JwtServiceTest {
     }
 
     @Test
-    @DisplayName("getAccessTokenExpirationSeconds возвращает значение из конфига")
+    // @DisplayName("getAccessTokenExpirationSeconds возвращает значение из
+    // конфига")
     void getAccessTokenExpirationSeconds_returnsConfigValue() {
         assertThat(jwtService.getAccessTokenExpirationSeconds()).isEqualTo(900);
     }

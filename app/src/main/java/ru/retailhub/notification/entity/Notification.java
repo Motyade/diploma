@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import ru.retailhub.user.entity.User;
 
 import java.time.OffsetDateTime;
@@ -37,7 +38,7 @@ public class Notification {
 
     
     @Column(columnDefinition = "jsonb")
-    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+    @JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
     private String payload;
 
     
