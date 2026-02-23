@@ -8,9 +8,21 @@ spring:
     password: secret
     driver-class-name: org.postgresql.Driver
 
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      group-id: retailhub-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "ru.retailhub.*"
+
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: none
     open-in-view: false
     properties:
       hibernate:
@@ -28,6 +40,9 @@ app:
     secret: "beAxeaveJiJRK6CIwR_bp-DxQAH9BBRWkv5HfhZOVHVU4JWGA6MFSndFPFd_lE7keRxVpNcuKfopDNeBMfJRBQ"
     access-token-expiration: 900
     refresh-token-expiration: 604800
+  kafka:
+    topics:
+      request-events: "request-events"
 
 springdoc:
   swagger-ui:

@@ -62,7 +62,6 @@ components:
       bearerFormat: JWT
 
   schemas:
-
     # --- Enums ---
 
     Role:
@@ -77,11 +76,14 @@ components:
 
     RequestStatus:
       type: string
-      enum: [CREATED, ASSIGNED, COMPLETED, ESCALATED]
+      enum: [CREATED, WAITING, ESCALATED, ASSIGNED, COMPLETED, CANCELED]
       description: |
-        CREATED → ASSIGNED → COMPLETED
-        ASSIGNED → CREATED (клиент нажал "Сменить")
-        CREATED → ESCALATED (просрочена)
+        CREATED  → WAITING   (> 3 мин без реакции, scheduler)
+        WAITING  → ESCALATED (> 5 мин, SLA нарушен, scheduler)
+        CREATED | WAITING | ESCALATED → ASSIGNED (консультант взял заявку)
+        ASSIGNED → COMPLETED (консультант завершил)
+        ASSIGNED → CREATED   (клиент нажал "Сменить консультанта")
+        Любой, кроме COMPLETED/CANCELED → CANCELED (клиент отменил)
 
     # --- Auth ---
 
@@ -140,13 +142,13 @@ components:
         last_name:
           type: string
         role:
-          $ref: '#/components/schemas/Role'
-        current_status: 
-          $ref: '#/components/schemas/UserStatus'
+          $ref: "#/components/schemas/Role"
+        current_status:
+          $ref: "#/components/schemas/UserStatus"
         departments:
           type: array
           items:
-            $ref: '#/components/schemas/DepartmentShort'
+            $ref: "#/components/schemas/DepartmentShort"
           description: Отделы, в которых сотрудник компетентен
         created_at:
           type: string
@@ -182,7 +184,7 @@ components:
           maxLength: 100
           example: Петров
         role:
-          $ref: '#/components/schemas/Role'
+          $ref: "#/components/schemas/Role"
         department_ids:
           type: array
           items:
@@ -254,6 +256,10 @@ components:
           format: uuid
         name:
           type: string
+        description:
+          type: string
+          description: Краткое описание отдела, показывается клиенту на экране ожидания
+          example: Ноутбуки, планшеты, аксессуары
         created_at:
           type: string
           format: date-time
@@ -266,6 +272,10 @@ components:
           type: string
           maxLength: 255
           example: Телевизоры
+        description:
+          type: string
+          description: Краткое описание отдела (опционально)
+          example: Смарт-телевизоры, проекторы, аксессуары
 
     UpdateDepartmentRequest:
       type: object
@@ -273,6 +283,9 @@ components:
         name:
           type: string
           maxLength: 255
+        description:
+          type: string
+          description: Краткое описание отдела (опционально)
 
     # --- QR Code ---
 
@@ -334,9 +347,9 @@ components:
           type: boolean
           description: "True, если заявка просрочена (> 5 мин) и эскалирована менеджеру"
         assigned_user:
-          $ref: '#/components/schemas/AssignedConsultant'
+          $ref: "#/components/schemas/AssignedConsultant"
         status:
-          $ref: '#/components/schemas/RequestStatus'
+          $ref: "#/components/schemas/RequestStatus"
         client_session_token:
           type: string
           format: uuid
@@ -378,7 +391,7 @@ components:
           format: uuid
           description: "Секретный токен для polling. Возвращается ТОЛЬКО при создании."
         status:
-          $ref: '#/components/schemas/RequestStatus'
+          $ref: "#/components/schemas/RequestStatus"
         department_name:
           type: string
         consultant_name:
@@ -524,7 +537,7 @@ components:
       type: object
       properties:
         consultant:
-          $ref: '#/components/schemas/ConsultantStats'
+          $ref: "#/components/schemas/ConsultantStats"
         daily_breakdown:
           type: array
           items:
@@ -573,7 +586,6 @@ components:
 
 # PATHS
 paths:
-
   # --- AUTH ---
 
   /auth/login:
@@ -587,20 +599,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/LoginRequest'
+              $ref: "#/components/schemas/LoginRequest"
       responses:
-        '200':
+        "200":
           description: Токены
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TokenResponse'
-        '401':
+                $ref: "#/components/schemas/TokenResponse"
+        "401":
           description: Неверные данные
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
 
   /auth/refresh:
     post:
@@ -613,20 +625,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RefreshRequest'
+              $ref: "#/components/schemas/RefreshRequest"
       responses:
-        '200':
+        "200":
           description: Новые токены
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TokenResponse'
-        '401':
+                $ref: "#/components/schemas/TokenResponse"
+        "401":
           description: Refresh-токен невалиден
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
 
   /auth/me:
     get:
@@ -634,12 +646,12 @@ paths:
       summary: Профиль текущего пользователя
       description: Приложение вызывает при запуске — получает роль, магазин, отделы.
       responses:
-        '200':
+        "200":
           description: Профиль
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserProfile'
+                $ref: "#/components/schemas/UserProfile"
 
   # --- USERS (MANAGER) ---
 
@@ -653,26 +665,26 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateUserRequest'
+              $ref: "#/components/schemas/CreateUserRequest"
       responses:
-        '201':
+        "201":
           description: Создан
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserProfile'
-        '400':
+                $ref: "#/components/schemas/UserProfile"
+        "400":
           description: Валидация (телефон занят)
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
           description: Нет прав
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
 
     get:
       tags: [Users]
@@ -681,7 +693,7 @@ paths:
         - name: role
           in: query
           schema:
-            $ref: '#/components/schemas/Role'
+            $ref: "#/components/schemas/Role"
         - name: page
           in: query
           schema:
@@ -693,19 +705,19 @@ paths:
             type: integer
             default: 20
       responses:
-        '200':
+        "200":
           description: Список
           content:
             application/json:
               schema:
                 allOf:
-                  - $ref: '#/components/schemas/PageResponse'
+                  - $ref: "#/components/schemas/PageResponse"
                   - type: object
                     properties:
                       content:
                         type: array
                         items:
-                          $ref: '#/components/schemas/UserProfile'
+                          $ref: "#/components/schemas/UserProfile"
 
   /users/{userId}:
     parameters:
@@ -720,18 +732,18 @@ paths:
       tags: [Users]
       summary: Профиль сотрудника
       responses:
-        '200':
+        "200":
           description: Профиль
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserProfile'
-        '404':
+                $ref: "#/components/schemas/UserProfile"
+        "404":
           description: Не найден
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
 
     put:
       tags: [Users]
@@ -741,21 +753,21 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateUserRequest'
+              $ref: "#/components/schemas/UpdateUserRequest"
       responses:
-        '200':
+        "200":
           description: Обновлён
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserProfile'
+                $ref: "#/components/schemas/UserProfile"
 
     delete:
       tags: [Users]
       summary: Удалить сотрудника
       description: Полное удаление из БД. Связанные смены удаляются каскадно.
       responses:
-        '204':
+        "204":
           description: Удалён
 
   /users/{userId}/departments:
@@ -775,14 +787,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AssignDepartmentsRequest'
+              $ref: "#/components/schemas/AssignDepartmentsRequest"
       responses:
-        '200':
+        "200":
           description: Обновлено
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserProfile'
+                $ref: "#/components/schemas/UserProfile"
 
   # --- STORES (MANAGER) ---
 
@@ -791,12 +803,12 @@ paths:
       tags: [Stores]
       summary: Мой магазин
       responses:
-        '200':
+        "200":
           description: Магазин
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Store'
+                $ref: "#/components/schemas/Store"
 
     put:
       tags: [Stores]
@@ -806,28 +818,28 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateStoreRequest'
+              $ref: "#/components/schemas/UpdateStoreRequest"
       responses:
-        '200':
+        "200":
           description: Обновлён
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Store'
+                $ref: "#/components/schemas/Store"
 
   /stores/my/departments:
     get:
       tags: [Stores]
       summary: Список отделов
       responses:
-        '200':
+        "200":
           description: Отделы
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Department'
+                  $ref: "#/components/schemas/Department"
 
     post:
       tags: [Stores]
@@ -837,14 +849,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateDepartmentRequest'
+              $ref: "#/components/schemas/CreateDepartmentRequest"
       responses:
-        '201':
+        "201":
           description: Создан
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Department'
+                $ref: "#/components/schemas/Department"
 
   /departments/{departmentId}:
     parameters:
@@ -863,21 +875,21 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateDepartmentRequest'
+              $ref: "#/components/schemas/UpdateDepartmentRequest"
       responses:
-        '200':
+        "200":
           description: Обновлён
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Department'
+                $ref: "#/components/schemas/Department"
 
     delete:
       tags: [Stores]
       summary: Удалить отдел
       description: Каскадно удалит QR-коды и привязки консультантов.
       responses:
-        '204':
+        "204":
           description: Удалён
 
   # --- QR CODES ---
@@ -891,14 +903,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateQrCodeRequest'
+              $ref: "#/components/schemas/CreateQrCodeRequest"
       responses:
-        '201':
+        "201":
           description: Создан
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/QrCode'
+                $ref: "#/components/schemas/QrCode"
 
     get:
       tags: [QR Codes]
@@ -910,14 +922,14 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        "200":
           description: Список
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/QrCode'
+                  $ref: "#/components/schemas/QrCode"
 
   /qr-codes/{qrCodeId}:
     delete:
@@ -931,7 +943,7 @@ paths:
             type: string
             format: uuid
       responses:
-        '204':
+        "204":
           description: Деактивирован
 
   /qr-codes/scan/{token}:
@@ -948,7 +960,7 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        "200":
           description: Инфо о точке
           content:
             application/json:
@@ -961,12 +973,12 @@ paths:
                     type: string
                   is_valid:
                     type: boolean
-        '404':
+        "404":
           description: QR не найден
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
 
   # --- REQUESTS ---
 
@@ -985,20 +997,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateRequestRequest'
+              $ref: "#/components/schemas/CreateRequestRequest"
       responses:
-        '201':
+        "201":
           description: Заявка создана
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ClientRequestView'
-        '400':
+                $ref: "#/components/schemas/ClientRequestView"
+        "400":
           description: QR невалиден
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
 
     get:
       tags: [Requests]
@@ -1010,7 +1022,7 @@ paths:
         - name: status
           in: query
           schema:
-            $ref: '#/components/schemas/RequestStatus'
+            $ref: "#/components/schemas/RequestStatus"
         - name: department_id
           in: query
           schema:
@@ -1037,19 +1049,19 @@ paths:
             type: integer
             default: 20
       responses:
-        '200':
+        "200":
           description: Заявки
           content:
             application/json:
               schema:
                 allOf:
-                  - $ref: '#/components/schemas/PageResponse'
+                  - $ref: "#/components/schemas/PageResponse"
                   - type: object
                     properties:
                       content:
                         type: array
                         items:
-                          $ref: '#/components/schemas/ServiceRequest'
+                          $ref: "#/components/schemas/ServiceRequest"
 
   /requests/{requestId}:
     get:
@@ -1073,18 +1085,18 @@ paths:
             format: uuid
           description: client_session_token
       responses:
-        '200':
+        "200":
           description: Статус
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ClientRequestView'
-        '403':
+                $ref: "#/components/schemas/ClientRequestView"
+        "403":
           description: Неверный session-токен
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
 
   /requests/{requestId}/assign:
     post:
@@ -1102,18 +1114,18 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        "200":
           description: Принята
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ServiceRequest'
-        '409':
+                $ref: "#/components/schemas/ServiceRequest"
+        "409":
           description: Уже взята другим
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
 
   /requests/{requestId}/complete:
     post:
@@ -1128,12 +1140,35 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        "200":
           description: Завершена
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ServiceRequest'
+                $ref: "#/components/schemas/ServiceRequest"
+
+  /requests/{requestId}/cancel:
+    post:
+      tags: [Requests]
+      summary: Отменить заявку (клиент)
+      description: Заявка → CANCELED.
+      security: []
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: session
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Отменена
 
   /requests/{requestId}/remind:
     post:
@@ -1155,14 +1190,14 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        "200":
           description: Отправлено
-        '400':
+        "400":
           description: Рано (< 1 мин) или не ASSIGNED
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
 
   /requests/{requestId}/reassign:
     post:
@@ -1183,19 +1218,24 @@ paths:
           schema:
             type: string
             format: uuid
+        - name: reason
+          in: query
+          schema:
+            type: string
+          description: Причина переназначения (TIMEOUT, CLIENT_REJECT)
       responses:
-        '200':
+        "200":
           description: Возвращена в очередь
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ClientRequestView'
-        '400':
+                $ref: "#/components/schemas/ClientRequestView"
+        "400":
           description: Рано (< 3 мин) или не ASSIGNED
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
 
   # --- SHIFTS ---
 
@@ -1205,18 +1245,18 @@ paths:
       summary: Начать смену (CONSULTANT)
       description: Создаёт запись смены. Консультант → ACTIVE.
       responses:
-        '201':
+        "201":
           description: Смена начата
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Shift'
-        '409':
+                $ref: "#/components/schemas/Shift"
+        "409":
           description: Уже на смене
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
 
   /shifts/end:
     post:
@@ -1224,32 +1264,32 @@ paths:
       summary: Закончить смену (CONSULTANT)
       description: Ставит ended_at. Консультант → OFFLINE.
       responses:
-        '200':
+        "200":
           description: Смена завершена
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Shift'
-        '400':
+                $ref: "#/components/schemas/Shift"
+        "400":
           description: Нет активной смены
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
 
   /shifts/active:
     get:
       tags: [Shifts]
       summary: Кто сейчас на смене (MANAGER)
       responses:
-        '200':
+        "200":
           description: Активные смены
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Shift'
+                  $ref: "#/components/schemas/Shift"
 
   /shifts/my:
     get:
@@ -1267,14 +1307,14 @@ paths:
             type: string
             format: date
       responses:
-        '200':
+        "200":
           description: Мои смены
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Shift'
+                  $ref: "#/components/schemas/Shift"
 
   # --- NOTIFICATIONS ---
 
@@ -1298,19 +1338,19 @@ paths:
             type: integer
             default: 20
       responses:
-        '200':
+        "200":
           description: Уведомления
           content:
             application/json:
               schema:
                 allOf:
-                  - $ref: '#/components/schemas/PageResponse'
+                  - $ref: "#/components/schemas/PageResponse"
                   - type: object
                     properties:
                       content:
                         type: array
                         items:
-                          $ref: '#/components/schemas/Notification'
+                          $ref: "#/components/schemas/Notification"
 
   /notifications/{notificationId}/read:
     post:
@@ -1324,7 +1364,7 @@ paths:
             type: string
             format: uuid
       responses:
-        '204':
+        "204":
           description: Отмечено
 
   # --- DEVICES ---
@@ -1338,14 +1378,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RegisterDeviceRequest'
+              $ref: "#/components/schemas/RegisterDeviceRequest"
       responses:
-        '201':
+        "201":
           description: Зарегистрировано
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Device'
+                $ref: "#/components/schemas/Device"
 
   /devices/{deviceId}:
     delete:
@@ -1359,7 +1399,7 @@ paths:
             type: string
             format: uuid
       responses:
-        '204':
+        "204":
           description: Удалено
 
   # --- ANALYTICS (MANAGER) ---
@@ -1370,12 +1410,12 @@ paths:
       summary: Дашборд менеджера
       description: Сводка за сегодня.
       responses:
-        '200':
+        "200":
           description: Дашборд
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DashboardResponse'
+                $ref: "#/components/schemas/DashboardResponse"
 
   /analytics/consultants:
     get:
@@ -1396,14 +1436,14 @@ paths:
             type: string
             format: date
       responses:
-        '200':
+        "200":
           description: Статистика
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/ConsultantStats'
+                  $ref: "#/components/schemas/ConsultantStats"
 
   /analytics/consultants/{userId}:
     get:
@@ -1430,12 +1470,12 @@ paths:
             type: string
             format: date
       responses:
-        '200':
+        "200":
           description: Детальная статистика
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ConsultantDetailedStats'
+                $ref: "#/components/schemas/ConsultantDetailedStats"
 
   /analytics/requests:
     get:
@@ -1445,7 +1485,7 @@ paths:
         - name: status
           in: query
           schema:
-            $ref: '#/components/schemas/RequestStatus'
+            $ref: "#/components/schemas/RequestStatus"
         - name: department_id
           in: query
           schema:
@@ -1477,16 +1517,16 @@ paths:
             type: integer
             default: 20
       responses:
-        '200':
+        "200":
           description: Заявки
           content:
             application/json:
               schema:
                 allOf:
-                  - $ref: '#/components/schemas/PageResponse'
+                  - $ref: "#/components/schemas/PageResponse"
                   - type: object
                     properties:
                       content:
                         type: array
                         items:
-                          $ref: '#/components/schemas/ServiceRequest'
+                          $ref: "#/components/schemas/ServiceRequest"

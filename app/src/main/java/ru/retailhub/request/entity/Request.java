@@ -13,7 +13,6 @@ import ru.retailhub.user.entity.User;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
-
 @Entity
 @Table(name = "requests")
 @Getter
@@ -37,7 +36,6 @@ public class Request {
     @JoinColumn(name = "qr_code_id")
     private QrCode qrCode;
 
-    
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assigned_user_id")
     private User assignedUser;
@@ -46,7 +44,6 @@ public class Request {
     @Column(nullable = false, length = 20)
     private RequestStatus status = RequestStatus.CREATED;
 
-    
     @Column(name = "client_session_token", nullable = false)
     private UUID clientSessionToken;
 
@@ -54,18 +51,16 @@ public class Request {
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 
-    
     @Column(name = "assigned_at")
     private OffsetDateTime assignedAt;
 
-    
     @Column(name = "completed_at")
     private OffsetDateTime completedAt;
 
-    
-    @Column(name = "escalation_level")
-    private int escalationLevel = 0;
+    @Version
+    @Column(nullable = false)
+    private Long version;
 
     @Column(name = "escalated_at")
-    private OffsetDateTime escalatedAt;
+    private OffsetDateTime escalatedAt; // Время перехода в статус ESCALATED (SLA нарушен)
 }

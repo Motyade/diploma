@@ -30,15 +30,22 @@ public class SecurityConfig {
                         .requestMatchers("/auth/login", "/auth/refresh", "/error").permitAll()
                         .requestMatchers("/qr-codes/scanstatus").permitAll()
 
+                        // Публичные эндпоинты для клиента (без токена, по QR)
+                        .requestMatchers(HttpMethod.POST, "/requests").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/requests/*").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/requests/*/cancel").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/requests/*/remind").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/requests/*/reassign").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/qr-codes/scan/*").permitAll()
+
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",
-                                "/v3/api-docs"
-                        ).permitAll()
+                                "/v3/api-docs")
+                        .permitAll()
 
-                        .anyRequest().authenticated()
-                )
+                        .anyRequest().authenticated())
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }

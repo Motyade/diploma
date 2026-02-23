@@ -9,4 +9,6 @@ import java.util.UUID;
 public interface DepartmentRepository extends JpaRepository<Department, UUID> {
 
     List<Department> findAllByStoreId(UUID storeId);
+
+    boolean existsByStoreIdAndName(UUID storeId, String name);
 }

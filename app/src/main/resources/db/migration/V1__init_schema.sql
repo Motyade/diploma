@@ -1,5 +1,5 @@
 CREATE TABLE stores (
-    id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id                    UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     name                  VARCHAR(255) NOT NULL,
     address               TEXT NOT NULL,
     timezone              VARCHAR(50) NOT NULL DEFAULT 'Europe/Moscow',
@@ -10,7 +10,7 @@ CREATE TABLE stores (
 COMMENT ON TABLE stores IS 'Физические магазины - центральная сущность multi-tenant архитектуры';
 
 CREATE TABLE departments (
-    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id          UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     store_id    UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
     name        VARCHAR(255) NOT NULL,
     created_at  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
@@ -20,7 +20,7 @@ COMMENT ON TABLE departments IS 'Отделы магазина - к ним пр�
 CREATE INDEX idx_departments_store_id ON departments(store_id);
 
 CREATE TABLE users (
-    id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id               UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     store_id         UUID NOT NULL REFERENCES stores(id) ON DELETE RESTRICT,
     phone_number     VARCHAR(20) NOT NULL UNIQUE,
     password_hash    VARCHAR(255) NOT NULL,
@@ -36,7 +36,7 @@ COMMENT ON TABLE users IS 'Сотрудники магазинов: менедж
 CREATE INDEX idx_users_store ON users(store_id);
 
 CREATE TABLE department_employees (
-    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id              UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     user_id         UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     department_id   UUID NOT NULL REFERENCES departments(id) ON DELETE CASCADE,
     assigned_at     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
@@ -47,7 +47,7 @@ COMMENT ON TABLE department_employees IS 'Матрица компетенций:
 CREATE INDEX idx_dept_employees_department ON department_employees(department_id);
 
 CREATE TABLE shifts (
-    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id            UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     user_id       UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     store_id      UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
     started_at    TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
@@ -60,9 +60,9 @@ CREATE INDEX idx_shifts_user ON shifts(user_id);
 CREATE INDEX idx_shifts_store_active ON shifts(store_id) WHERE ended_at IS NULL;
 
 CREATE TABLE qr_codes (
-    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id              UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     department_id   UUID NOT NULL REFERENCES departments(id) ON DELETE CASCADE,
-    token           UUID NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+    token           UUID DEFAULT gen_random_uuid() NOT NULL UNIQUE,
     label           VARCHAR(255),
     is_active       BOOLEAN NOT NULL DEFAULT TRUE,
     created_at      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
@@ -71,13 +71,13 @@ CREATE TABLE qr_codes (
 COMMENT ON TABLE qr_codes IS 'QR-коды - точки входа. Клиент сканирует -> создаётся заявка';
 
 CREATE TABLE requests (
-    id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id                    UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     store_id              UUID NOT NULL REFERENCES stores(id) ON DELETE RESTRICT,
     department_id         UUID NOT NULL REFERENCES departments(id) ON DELETE RESTRICT,
     qr_code_id            UUID REFERENCES qr_codes(id) ON DELETE SET NULL,
     assigned_user_id      UUID REFERENCES users(id) ON DELETE SET NULL,
     status                VARCHAR(20) NOT NULL DEFAULT 'CREATED' CHECK (status IN ('CREATED', 'ASSIGNED', 'COMPLETED')),
-    client_session_token  UUID NOT NULL DEFAULT gen_random_uuid(),
+    client_session_token  UUID DEFAULT gen_random_uuid() NOT NULL,
     created_at            TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     assigned_at           TIMESTAMP WITH TIME ZONE,
     completed_at          TIMESTAMP WITH TIME ZONE,
@@ -90,7 +90,7 @@ CREATE INDEX idx_requests_store_department_status ON requests(store_id, departme
 CREATE INDEX idx_requests_client_session ON requests(client_session_token);
 
 CREATE TABLE user_devices (
-    id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id           UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     user_id      UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     fcm_token    VARCHAR(500) NOT NULL,
     device_info  VARCHAR(255),
@@ -101,7 +101,7 @@ CREATE TABLE user_devices (
 COMMENT ON TABLE user_devices IS 'Реестр FCM-токенов для push-уведомлений';
 
 CREATE TABLE notifications (
-    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id          UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     title       VARCHAR(255) NOT NULL,
     body        TEXT,
