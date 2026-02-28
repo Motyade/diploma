@@ -243,6 +243,21 @@ components:
           type: string
           example: Europe/Moscow
 
+    CreateStoreRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          maxLength: 255
+          example: "Main Store"
+        address:
+          type: string
+          example: "ул. Ленина, 1"
+        timezone:
+          type: string
+          example: Europe/Moscow
+
     # --- Department ---
 
     Department:
@@ -798,6 +813,31 @@ paths:
 
   # --- STORES (MANAGER) ---
 
+  /stores:
+    post:
+      tags: [Stores]
+      summary: Создать магазин
+      description: Только MANAGER. Создаёт новый магазин. timezone по умолчанию Europe/Moscow.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateStoreRequest"
+      responses:
+        "201":
+          description: Магазин создан
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Store"
+        "403":
+          description: Нет прав (не MANAGER)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /stores/my:
     get:
       tags: [Stores]
@@ -945,6 +985,35 @@ paths:
       responses:
         "204":
           description: Деактивирован
+    get:
+      tags: [QR Codes]
+      operationId: downloadQrCodeImage
+      summary: Скачать PNG QR-кода для печати (MANAGER)
+      description: |
+        Генерирует 500×500 PNG-изображение QR-кода.
+        QR-код кодирует URL: `{scanBaseUrl}/scan/{token}`.
+        Браузер предложит скачать файл `qr-{id}.png`.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: qrCodeId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: PNG-изображение QR-кода
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        "404":
+          description: QR-код не найден
+        "400":
+          description: QR-код деактивирован
 
   /qr-codes/scan/{token}:
     get:

@@ -77,7 +77,7 @@ public class RequestService {
     public Page<Request> getRequests(RequestStatus status, UUID departmentId,
             LocalDate dateFrom, LocalDate dateTo, int page, int size) {
 
-        Specification<Request> spec = Specification.where((Specification<Request>) null);
+        Specification<Request> spec = Specification.where((root, query, cb) -> cb.conjunction());
 
         if (status != null) {
             spec = spec.and((root, query, cb) -> {
@@ -146,7 +146,7 @@ public class RequestService {
         log.info("Заявка {} создана. Отдел: {}, Магазин: {}",
                 saved.getId(), saved.getDepartment().getName(), saved.getStore().getName());
 
-        publishEvent(saved, RequestEvent.TYPE_CREATED, null);
+        publishEvent(saved, RequestEvent.TYPE_CREATED, null, null);
         return saved;
     }
 
@@ -167,7 +167,6 @@ public class RequestService {
 
         Request request = requestRepository.findById(requestId)
                 .orElseThrow(() -> new RuntimeException("Заявка не найдена: " + requestId));
-
         // Проверяем допустимость перехода — назначить можно из любого до-назначенного
         // статуса
         if (request.getStatus() != RequestStatus.CREATED
@@ -195,7 +194,7 @@ public class RequestService {
         log.info("Заявка {} назначена консультанту {} {}",
                 saved.getId(), consultant.getFirstName(), consultant.getLastName());
 
-        publishEvent(saved, RequestEvent.TYPE_ASSIGNED, null);
+        publishEvent(saved, RequestEvent.TYPE_ASSIGNED, null, null);
 
         // Перезагружаем с JOIN FETCH — маппер в контроллере обращается к
         // department.name и т.д.
@@ -239,7 +238,7 @@ public class RequestService {
                 saved.getId(),
                 java.time.Duration.between(saved.getAssignedAt(), saved.getCompletedAt()).toMinutes());
 
-        publishEvent(saved, RequestEvent.TYPE_COMPLETED, null);
+        publishEvent(saved, RequestEvent.TYPE_COMPLETED, null, null);
 
         // Перезагружаем с JOIN FETCH для маппера
         return requestRepository.findByIdWithAssociations(saved.getId()).orElse(saved);
@@ -272,7 +271,7 @@ public class RequestService {
         Request saved = requestRepository.save(request);
         log.info("Заявка {} отменена клиентом", saved.getId());
 
-        publishEvent(saved, RequestEvent.TYPE_CANCELED, null);
+        publishEvent(saved, RequestEvent.TYPE_CANCELED, null, null);
         return saved;
     }
 
@@ -306,6 +305,7 @@ public class RequestService {
         }
 
         // Сбрасываем данные о назначении — заявка возвращается в очередь
+        UUID previousAssignedUserId = request.getAssignedUser().getId();
         request.setStatus(RequestStatus.CREATED);
         request.setAssignedAt(null);
         request.setAssignedUser(null);
@@ -313,7 +313,7 @@ public class RequestService {
         Request saved = requestRepository.save(request);
         log.info("Заявка {} возвращена в очередь для повторного назначения", saved.getId());
 
-        publishEvent(saved, RequestEvent.TYPE_REASSIGNED, reason);
+        publishEvent(saved, RequestEvent.TYPE_REASSIGNED, reason, previousAssignedUserId);
         return saved;
     }
 
@@ -349,7 +349,7 @@ public class RequestService {
         log.info("Напоминание отправлено консультанту {} по заявке {}",
                 request.getAssignedUser().getId(), requestId);
 
-        publishEvent(request, RequestEvent.TYPE_REMINDED, null);
+        publishEvent(request, RequestEvent.TYPE_REMINDED, null, null);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -362,14 +362,16 @@ public class RequestService {
      * Ключ сообщения = requestId — гарантирует порядок событий одной заявки
      * в рамках одного partition.
      */
-    private void publishEvent(Request request, String type, String reason) {
+    private void publishEvent(Request request, String type, String reason, UUID previousAssignedUserId) {
         RequestEvent event = RequestEvent.builder()
                 .type(type)
                 .requestId(request.getId())
                 .storeId(request.getStore().getId())
                 .departmentId(request.getDepartment().getId())
                 .departmentName(request.getDepartment().getName())
+                .status(request.getStatus().name())
                 .reason(reason)
+                .previousAssignedUserId(previousAssignedUserId)
                 .timestamp(System.currentTimeMillis())
                 .build();
 

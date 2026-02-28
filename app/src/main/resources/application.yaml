@@ -43,6 +43,9 @@ app:
   kafka:
     topics:
       request-events: "request-events"
+  qr:
+    # URL, который закодирован внутри QR-кода.
+    scan-base-url: "http://localhost:8087"
 
 springdoc:
   swagger-ui:

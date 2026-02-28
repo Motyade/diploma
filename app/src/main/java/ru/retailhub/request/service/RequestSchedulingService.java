@@ -2,17 +2,11 @@ package ru.retailhub.request.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import ru.retailhub.request.entity.Request;
-import ru.retailhub.request.entity.RequestStatus;
-import ru.retailhub.request.event.RequestDomainEvent;
-import ru.retailhub.request.event.RequestEvent;
 import ru.retailhub.request.repository.RequestRepository;
-
+import ru.retailhub.request.entity.RequestStatus;
+import ru.retailhub.request.entity.Request;
 import java.time.OffsetDateTime;
 import java.util.List;
 
@@ -32,19 +26,15 @@ import java.util.List;
 public class RequestSchedulingService {
 
     private final RequestRepository requestRepository;
-    private final ApplicationEventPublisher eventPublisher;
-
-    @Value("${app.kafka.topics.request-events}")
-    private String topic;
+    private final RequestSlaProcessor requestSlaProcessor;
 
     /**
-     * Основной SLA-цикл. Выполняется каждые 60 секунд.
+     * Основной SLA-цикл. Выполняется каждые 15 секунд.
      *
      * Порядок проверки важен: сначала CREATED→WAITING, потом WAITING→ESCALATED,
-     * чтобы заявки, вставшие в WAITING в эту же минуту, не эскалировались сразу.
+     * чтобы заявки, вставшие в WAITING, не эскалировались сразу.
      */
-    @Scheduled(fixedRate = 60000)
-    @Transactional
+    @Scheduled(fixedRate = 15000)
     public void checkRequestSla() {
         OffsetDateTime now = OffsetDateTime.now();
 
@@ -55,10 +45,13 @@ public class RequestSchedulingService {
                 cb.lessThan(root.get("createdAt"), now.minusMinutes(3))));
 
         for (Request request : toWaiting) {
-            request.setStatus(RequestStatus.WAITING);
-            requestRepository.save(request);
-            publishEvent(request, RequestEvent.TYPE_WAITING);
-            log.info("Заявка {} → WAITING (ожидание > 3 мин)", request.getId());
+            try {
+                requestSlaProcessor.processToWaiting(request.getId());
+            } catch (org.springframework.orm.ObjectOptimisticLockingFailureException e) {
+                log.info("Заявка {} была изменена другим потоком. Пропускаем", request.getId());
+            } catch (Exception e) {
+                log.error("Ошибка при переводе заявки {} в статус WAITING: {}", request.getId(), e.getMessage());
+            }
         }
 
         // ── Уровень 2: WAITING → ESCALATED (клиент ждёт > 5 минут) ─────────
@@ -68,28 +61,13 @@ public class RequestSchedulingService {
                 cb.lessThan(root.get("createdAt"), now.minusMinutes(5))));
 
         for (Request request : toEscalated) {
-            request.setStatus(RequestStatus.ESCALATED);
-            request.setEscalatedAt(now);
-            requestRepository.save(request);
-            publishEvent(request, RequestEvent.TYPE_ESCALATED);
-            log.info("Заявка {} → ESCALATED (ожидание > 5 мин, SLA нарушен)", request.getId());
+            try {
+                requestSlaProcessor.processToEscalated(request.getId());
+            } catch (org.springframework.orm.ObjectOptimisticLockingFailureException e) {
+                log.info("Заявка {} была изменена другим потоком. Пропускаем", request.getId());
+            } catch (Exception e) {
+                log.error("Ошибка при переводе заявки {} в статус ESCALATED: {}", request.getId(), e.getMessage());
+            }
         }
-    }
-
-    /**
-     * Формирует Kafka-событие и публикует его через Spring ApplicationEvent.
-     * KafkaEventForwarder отправит его в топик только после коммита транзакции.
-     */
-    private void publishEvent(Request request, String type) {
-        RequestEvent event = RequestEvent.builder()
-                .type(type)
-                .requestId(request.getId())
-                .storeId(request.getStore().getId())
-                .departmentId(request.getDepartment().getId())
-                .departmentName(request.getDepartment().getName())
-                .timestamp(System.currentTimeMillis())
-                .build();
-
-        eventPublisher.publishEvent(new RequestDomainEvent(event));
     }
 }

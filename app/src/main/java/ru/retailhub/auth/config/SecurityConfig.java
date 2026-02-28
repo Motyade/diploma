@@ -37,6 +37,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/requests/*/remind").permitAll()
                         .requestMatchers(HttpMethod.POST, "/requests/*/reassign").permitAll()
                         .requestMatchers(HttpMethod.GET, "/qr-codes/scan/*").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/scan/**").permitAll() // Клиентский сайт
 
                         .requestMatchers(
                                 "/swagger-ui/**",

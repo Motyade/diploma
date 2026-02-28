@@ -19,6 +19,8 @@ public class RequestEvent {
     private String departmentName;
     private UUID assignedUserId;
     private String assignedUserName;
+    private UUID previousAssignedUserId;
+    private String status;
     private String reason;
     private Long timestamp;
 

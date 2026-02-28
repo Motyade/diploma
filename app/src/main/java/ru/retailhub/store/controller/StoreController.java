@@ -4,57 +4,83 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 import ru.retailhub.api.StoresApi;
 import ru.retailhub.model.CreateDepartmentRequest;
+import ru.retailhub.model.CreateStoreRequest;
 import ru.retailhub.model.Department;
 import ru.retailhub.model.Store;
+import ru.retailhub.model.UpdateDepartmentRequest;
 import ru.retailhub.model.UpdateStoreRequest;
+import ru.retailhub.store.mapper.StoreMapper;
 import ru.retailhub.store.service.StoreService;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
 public class StoreController implements StoresApi {
 
     private final StoreService storeService;
+    private final StoreMapper storeMapper;
 
-    /** Информация о магазине (только MANAGER) */
+    /**
+     * Извлекает магазин текущего менеджера через сервис (внутри транзакции, без
+     * LazyLoading)
+     */
+    private ru.retailhub.store.entity.Store currentManagerStore() {
+        UUID managerId = UUID.fromString(
+                SecurityContextHolder.getContext().getAuthentication().getName());
+        return storeService.getStoreByManagerId(managerId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Магазин ещё не создан. Используйте POST /stores."));
+    }
+
+    /** Создать магазин (только MANAGER) — автоматически привязывает менеджера */
+    @PreAuthorize("hasRole('MANAGER')")
+    @Override
+    public ResponseEntity<Store> storesPost(CreateStoreRequest createStoreRequest) {
+        ru.retailhub.store.entity.Store entity = storeService.createStore(
+                createStoreRequest.getName(),
+                createStoreRequest.getAddress(),
+                createStoreRequest.getTimezone());
+        // Привязываем текущего менеджера к созданному магазину
+        UUID managerId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        storeService.linkManagerToStore(managerId, entity.getId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(storeMapper.toDto(entity));
+    }
+
+    /** Информация о магазине текущего менеджера (только MANAGER) */
     @PreAuthorize("hasRole('MANAGER')")
     @Override
     public ResponseEntity<Store> storesMyGet() {
-        // For now, let's assume "my" means the first one or we need some logic to get
-        // current user's store
-        // But the user wants to test flows, so let's just return the first one if it
-        // exists or 404
-        List<ru.retailhub.store.entity.Store> stores = storeService.getAllStores();
-        if (stores.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(mapToStoreDto(stores.get(0)));
+        return ResponseEntity.ok(storeMapper.toDto(currentManagerStore()));
     }
 
+    /** Обновить данные магазина (только MANAGER) */
+    @PreAuthorize("hasRole('MANAGER')")
     @Override
     public ResponseEntity<Store> storesMyPut(UpdateStoreRequest updateStoreRequest) {
-        // Similar to GET, update "my" store
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+        UUID storeId = currentManagerStore().getId();
+        ru.retailhub.store.entity.Store updated = storeService.updateStore(
+                storeId,
+                updateStoreRequest.getName(),
+                updateStoreRequest.getAddress(),
+                updateStoreRequest.getTimezone());
+        return ResponseEntity.ok(storeMapper.toDto(updated));
     }
 
-    /** Список отделов (только MANAGER) */
+    /** Список отделов магазина текущего менеджера (только MANAGER) */
     @PreAuthorize("hasRole('MANAGER')")
     @Override
     public ResponseEntity<List<Department>> storesMyDepartmentsGet() {
-        List<ru.retailhub.store.entity.Store> stores = storeService.getAllStores();
-        if (stores.isEmpty()) {
-            return ResponseEntity.ok(List.of());
-        }
-        UUID storeId = stores.get(0).getId();
+        UUID storeId = currentManagerStore().getId();
         List<Department> departments = storeService.getDepartmentsByStore(storeId).stream()
-                .map(this::mapToDepartmentDto)
-                .collect(Collectors.toList());
+                .map(storeMapper::toDto)
+                .toList();
         return ResponseEntity.ok(departments);
     }
 
@@ -62,35 +88,31 @@ public class StoreController implements StoresApi {
     @PreAuthorize("hasRole('MANAGER')")
     @Override
     public ResponseEntity<Department> storesMyDepartmentsPost(CreateDepartmentRequest createDepartmentRequest) {
-        List<ru.retailhub.store.entity.Store> stores = storeService.getAllStores();
-        if (stores.isEmpty()) {
-            return ResponseEntity.badRequest().build();
-        }
+        UUID storeId = currentManagerStore().getId();
         ru.retailhub.store.entity.Department dept = storeService.createDepartment(
-                stores.get(0).getId(),
+                storeId,
                 createDepartmentRequest.getName(),
                 createDepartmentRequest.getDescription());
-        return ResponseEntity.status(HttpStatus.CREATED).body(mapToDepartmentDto(dept));
+        return ResponseEntity.status(HttpStatus.CREATED).body(storeMapper.toDto(dept));
     }
 
-    // Helper mappings (since we don't have StoreMapper yet)
-    private Store mapToStoreDto(ru.retailhub.store.entity.Store entity) {
-        Store dto = new Store();
-        dto.setId(entity.getId());
-        dto.setName(entity.getName());
-        dto.setAddress(entity.getAddress());
-        dto.setTimezone(entity.getTimezone());
-        dto.setCreatedAt(entity.getCreatedAt());
-        return dto;
+    /** Обновить отдел (только MANAGER) */
+    @PreAuthorize("hasRole('MANAGER')")
+    @Override
+    public ResponseEntity<Department> departmentsDepartmentIdPut(UUID departmentId,
+            UpdateDepartmentRequest updateDepartmentRequest) {
+        ru.retailhub.store.entity.Department updated = storeService.updateDepartment(
+                departmentId,
+                updateDepartmentRequest.getName(),
+                updateDepartmentRequest.getDescription());
+        return ResponseEntity.ok(storeMapper.toDto(updated));
     }
 
-    private Department mapToDepartmentDto(ru.retailhub.store.entity.Department entity) {
-        Department dto = new Department();
-        dto.setId(entity.getId());
-        dto.setStoreId(entity.getStore().getId());
-        dto.setName(entity.getName());
-        dto.setDescription(entity.getDescription());
-        dto.setCreatedAt(entity.getCreatedAt());
-        return dto;
+    /** Удалить отдел (только MANAGER) */
+    @PreAuthorize("hasRole('MANAGER')")
+    @Override
+    public ResponseEntity<Void> departmentsDepartmentIdDelete(UUID departmentId) {
+        storeService.deleteDepartment(departmentId);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
-import ru.retailhub.store.entity.Department;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;

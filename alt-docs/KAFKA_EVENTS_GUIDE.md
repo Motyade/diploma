@@ -73,55 +73,58 @@ Kafka Topic: "request-events"
 
 ## 3. Жизненный цикл заявки (State Machine)
 
-```
-Легенда:  👤  Клиент + session-токен
-          🔐  Консультант/Менеджер + JWT
-          ⏱   RequestSchedulingService (каждые 60 сек)
-```
+**Легенда:** 👤 Клиент + session-токен · 🔐 Консультант/Менеджер + JWT · ⏱ Scheduler (каждые 60 сек)
 
-```
-             👤 POST /requests
-                  📨 CREATED
-                    │
-                    ▼
-              ┌───────────┐
-         ┌───▶│  CREATED  │────────────────────────────────────┐
-         │    └───────────┘                                    │
-         │         │                                           │
-         │    ⏱ >3мин                                         │ 👤 POST /cancel
-         │    📨 WAITING                                       │ 📨 CANCELED
-         │    (псевдо-статус,                                  │
-         │    escalationLevel=1)                               │
-         │         │                                           │
-         │    ⏱ >5мин                                         ▼
-         │    📨 ESCALATED                              ┌───────────┐
-         │         │                                   │  CANCELED  │
-         │         ▼                                   └───────────┘
-         │    ┌────────────┐                                ▲   ▲
-         │    │ ESCALATED  │── 👤 POST /cancel ─────────────┘   │
-         │    └────────────┘   📨 CANCELED                       │
-         │         │                                             │
-         │    🔐 POST /assign                                    │
-         │    📨 ASSIGNED                                        │
-         │         │                                             │
-         │    ┌────────────┐                                     │
-         └────│  ASSIGNED  │── 👤 POST /cancel ─────────────────┘
-              └────────────┘   📨 CANCELED
-                   │   ▲
-                   │   │ 👤 POST /remind (>1 мин)
-                   │   │ 📨 REMINDED (статус не меняется)
-                   │   └─────(пунктир)────┐
-                   │                       │
-                   │   👤 POST /reassign (>3 мин)
-                   │   📨 REASSIGNED
-                   │   (статус → CREATED)
-                   │
-                   │   🔐 POST /complete
-                   │   📨 COMPLETED
-                   ▼
-              ┌───────────┐
-              │ COMPLETED │
-              └───────────┘
+```mermaid
+%%{init: {"flowchart": {"curve": "basis"}} }%%
+flowchart TD
+    %% Легенда:
+    %% 👤 = Клиент + session-токен (публичный)
+    %% 🔐 = Консультант/Менеджер + JWT
+    %% ⏱ = Автоматически (RequestSchedulingService)
+
+    S(( )) -->|"👤 POST /requests · 📨 CREATED"| CREATED
+
+    CREATED["`**CREATED**
+Ожидает консультанта`"]
+
+    WAITING["`**WAITING** ⚠
+Клиент ждёт > 3 мин`"]
+
+    ESCALATED["`**ESCALATED**
+SLA нарушен > 5 мин`"]
+
+    ASSIGNED["`**ASSIGNED**
+Консультант назначен`"]
+
+    COMPLETED(["`✅ COMPLETED`"])
+    CANCELED(["`❌ CANCELED`"])
+
+    CREATED   -->|"⏱ 3+ мин · Scheduler · 📨 WAITING"| WAITING
+    WAITING   -->|"⏱ 5+ мин · Scheduler · 📨 ESCALATED"| ESCALATED
+
+    CREATED   -->|"🔐 POST /assign · 📨 ASSIGNED"| ASSIGNED
+    WAITING   -->|"🔐 POST /assign · 📨 ASSIGNED"| ASSIGNED
+    ESCALATED -->|"🔐 POST /assign · 📨 ASSIGNED"| ASSIGNED
+
+    CREATED   -->|"👤 POST /cancel · 📨 CANCELED"| CANCELED
+    WAITING   -->|"👤 POST /cancel · 📨 CANCELED"| CANCELED
+    ESCALATED -->|"👤 POST /cancel · 📨 CANCELED"| CANCELED
+    ASSIGNED  -->|"👤 POST /cancel · 📨 CANCELED"| CANCELED
+
+    ASSIGNED -.->|"👤 POST /remind, 1+ мин · 📨 REMINDED"| ASSIGNED
+    ASSIGNED  -->|"👤 POST /reassign, 3+ мин · 📨 REASSIGNED"| CREATED
+    ASSIGNED  -->|"🔐 POST /complete · 📨 COMPLETED"| COMPLETED
+
+    classDef active  fill:#1a3e70,stroke:#4da6ff,color:#fff
+    classDef warning fill:#3d3200,stroke:#ffd700,color:#eee
+    classDef done    fill:#1a3a1a,stroke:#50c878,color:#ccc
+    classDef off     fill:#3a1a1a,stroke:#c05050,color:#ccc
+
+    class CREATED,ASSIGNED,ESCALATED active
+    class WAITING warning
+    class COMPLETED done
+    class CANCELED off
 ```
 
 ### Таблица переходов
@@ -129,19 +132,18 @@ Kafka Topic: "request-events"
 | Откуда | Куда | Кто | Эндпоинт | 📨 Kafka-событие |
 |---|---|---|---|---|
 | (старт) | `CREATED` | 👤 Клиент | `POST /requests` | `CREATED` |
-| `CREATED` | `WAITING`* | ⏱ Scheduler | авто, каждую мин | `WAITING` |
-| `WAITING`* | `ESCALATED` | ⏱ Scheduler | авто, каждую мин | `ESCALATED` |
+| `CREATED` | `WAITING` | ⏱ Scheduler | авто, каждую мин | `WAITING` |
+| `WAITING` | `ESCALATED` | ⏱ Scheduler | авто, каждую мин | `ESCALATED` |
 | `CREATED` | `ASSIGNED` | 🔐 Консультант | `POST /requests/{id}/assign` | `ASSIGNED` |
-| `ESCALATED` | `ASSIGNED` | 🔐 Консультант/Менеджер | `POST /requests/{id}/assign` | `ASSIGNED` |
+| `WAITING` | `ASSIGNED` | 🔐 Консультант | `POST /requests/{id}/assign` | `ASSIGNED` |
+| `ESCALATED` | `ASSIGNED` | 🔐 Консультант | `POST /requests/{id}/assign` | `ASSIGNED` |
 | `ASSIGNED` | `COMPLETED` | 🔐 Консультант | `POST /requests/{id}/complete` | `COMPLETED` |
 | `CREATED` | `CANCELED` | 👤 Клиент + session | `POST /requests/{id}/cancel` | `CANCELED` |
-| `WAITING`* | `CANCELED` | 👤 Клиент + session | `POST /requests/{id}/cancel` | `CANCELED` |
+| `WAITING` | `CANCELED` | 👤 Клиент + session | `POST /requests/{id}/cancel` | `CANCELED` |
 | `ESCALATED` | `CANCELED` | 👤 Клиент + session | `POST /requests/{id}/cancel` | `CANCELED` |
 | `ASSIGNED` | `CANCELED` | 👤 Клиент + session | `POST /requests/{id}/cancel` | `CANCELED` |
-| `ASSIGNED` | `CREATED` | 👤 Клиент + session (>3мин) | `POST /requests/{id}/reassign` | `REASSIGNED` |
-| `ASSIGNED` | `ASSIGNED` | 👤 Клиент + session (>1мин) | `POST /requests/{id}/remind` | `REMINDED` |
-
-> *WAITING — не отдельный статус в БД. `status = CREATED`, `escalation_level = 1`. Kafka-событие `WAITING` отправляется как сигнал для мягкого напоминания консультантам.
+| `ASSIGNED` | `CREATED` | 👤 Клиент + session (> 3 мин) | `POST /requests/{id}/reassign` | `REASSIGNED` |
+| `ASSIGNED` | `ASSIGNED` | 👤 Клиент + session (> 1 мин) | `POST /requests/{id}/remind` | `REMINDED` |
 
 ---
 

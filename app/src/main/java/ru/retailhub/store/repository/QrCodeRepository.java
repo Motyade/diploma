@@ -30,5 +30,12 @@ public interface QrCodeRepository extends JpaRepository<QrCode, UUID> {
     @Query("SELECT q FROM QrCode q JOIN FETCH q.department d JOIN FETCH d.store WHERE q.token = :token AND q.active = true")
     Optional<QrCode> findByTokenWithDepartment(@Param("token") UUID token);
 
+    /**
+     * QR-код по ID с жадной загрузкой department и store (для генерации
+     * изображения)
+     */
+    @Query("SELECT q FROM QrCode q JOIN FETCH q.department d JOIN FETCH d.store WHERE q.id = :id")
+    Optional<QrCode> findByIdWithDepartment(@Param("id") UUID id);
+
     java.util.List<QrCode> findByDepartmentId(UUID departmentId);
 }
