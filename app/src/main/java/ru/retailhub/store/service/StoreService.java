@@ -86,6 +86,12 @@ public class StoreService {
         return departmentRepository.findAllByStoreId(storeId);
     }
 
+    @Transactional(readOnly = true)
+    public Department getDepartmentById(UUID departmentId) {
+        return departmentRepository.findById(departmentId)
+                .orElseThrow(() -> new RuntimeException("Department not found: " + departmentId));
+    }
+
     @Transactional
     public QrCode createQrCode(UUID departmentId, String label) {
         Department department = departmentRepository.findById(departmentId)

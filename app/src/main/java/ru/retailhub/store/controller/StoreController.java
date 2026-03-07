@@ -108,6 +108,14 @@ public class StoreController implements StoresApi {
         return ResponseEntity.ok(storeMapper.toDto(updated));
     }
 
+    /** Получить отдел по ID (только MANAGER) */
+    @PreAuthorize("hasRole('MANAGER')")
+    @Override
+    public ResponseEntity<Department> departmentsDepartmentIdGet(UUID departmentId) {
+        ru.retailhub.store.entity.Department dept = storeService.getDepartmentById(departmentId);
+        return ResponseEntity.ok(storeMapper.toDto(dept));
+    }
+
     /** Удалить отдел (только MANAGER) */
     @PreAuthorize("hasRole('MANAGER')")
     @Override

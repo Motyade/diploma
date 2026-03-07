@@ -18,6 +18,7 @@ import ru.retailhub.store.entity.QrCode;
 import ru.retailhub.store.service.StoreService;
 import ru.retailhub.user.entity.User;
 import ru.retailhub.user.entity.UserStatus;
+import ru.retailhub.user.repository.DepartmentEmployeeRepository;
 import ru.retailhub.user.repository.UserRepository;
 
 import java.time.LocalDate;
@@ -50,6 +51,7 @@ public class RequestService {
      */
     private final ApplicationEventPublisher eventPublisher;
     private final UserRepository userRepository;
+    private final DepartmentEmployeeRepository departmentEmployeeRepository;
 
     @Value("${app.kafka.topics.request-events}")
     private String topic;
@@ -154,11 +156,12 @@ public class RequestService {
      * Консультант берёт заявку в работу.
      *
      * Ограничения:
-     * - Заявка должна быть в статусе CREATED или ESCALATED
-     * - Консультант должен существовать в системе
+     * - Заявка должна быть в статусе CREATED, WAITING или ESCALATED
      * - Консультант не должен быть OFFLINE (должен быть на смене)
+     * - Консультант не должен быть BUSY (уже обслуживает другого клиента)
+     * - Консультант должен быть назначен на отдел заявки
      *
-     * Переход: CREATED | ESCALATED → ASSIGNED
+     * Переход: CREATED | WAITING | ESCALATED → ASSIGNED
      * Kafka: TYPE_ASSIGNED
      */
     @Transactional
@@ -167,8 +170,7 @@ public class RequestService {
 
         Request request = requestRepository.findById(requestId)
                 .orElseThrow(() -> new RuntimeException("Заявка не найдена: " + requestId));
-        // Проверяем допустимость перехода — назначить можно из любого до-назначенного
-        // статуса
+        // Проверяем допустимость перехода
         if (request.getStatus() != RequestStatus.CREATED
                 && request.getStatus() != RequestStatus.WAITING
                 && request.getStatus() != RequestStatus.ESCALATED) {
@@ -180,10 +182,23 @@ public class RequestService {
         User consultant = userRepository.findById(consultantId)
                 .orElseThrow(() -> new RuntimeException("Консультант не найден: " + consultantId));
 
-        // Проверяем что консультант не оффлайн (должен быть на смене)
+        // Проверяем что консультант на смене (не OFFLINE)
         if (consultant.getCurrentStatus() == UserStatus.OFFLINE) {
             throw new RuntimeException(
-                    "Нельзя назначить заявку: консультант " + consultantId + " не на смене (OFFLINE)");
+                    "Нельзя назначить заявку: консультант не на смене (OFFLINE)");
+        }
+
+        // Проверяем что консультант не занят другой заявкой
+        if (consultant.getCurrentStatus() == UserStatus.BUSY) {
+            throw new RuntimeException(
+                    "Нельзя назначить заявку: консультант уже обслуживает другого клиента (BUSY)");
+        }
+
+        // Проверяем что консультант назначен на отдел заявки
+        UUID departmentId = request.getDepartment().getId();
+        if (!departmentEmployeeRepository.existsByUserIdAndDepartmentId(consultantId, departmentId)) {
+            throw new RuntimeException(
+                    "Нельзя назначить заявку: консультант не работает в отделе " + departmentId);
         }
 
         request.setStatus(RequestStatus.ASSIGNED);
@@ -191,7 +206,12 @@ public class RequestService {
         request.setAssignedUser(consultant);
 
         Request saved = requestRepository.save(request);
-        log.info("Заявка {} назначена консультанту {} {}",
+
+        // Устанавливаем статус BUSY — консультант теперь занят
+        consultant.setCurrentStatus(UserStatus.BUSY);
+        userRepository.save(consultant);
+
+        log.info("Заявка {} назначена консультанту {} {}. Статус консультанта: BUSY",
                 saved.getId(), consultant.getFirstName(), consultant.getLastName());
 
         publishEvent(saved, RequestEvent.TYPE_ASSIGNED, null, null);
@@ -239,6 +259,13 @@ public class RequestService {
                 java.time.Duration.between(saved.getAssignedAt(), saved.getCompletedAt()).toMinutes());
 
         publishEvent(saved, RequestEvent.TYPE_COMPLETED, null, null);
+
+        // Возвращаем консультанта в статус ACTIVE — он снова доступен для новых заявок
+        userRepository.findById(consultantId).ifPresent(c -> {
+            c.setCurrentStatus(UserStatus.ACTIVE);
+            userRepository.save(c);
+            log.info("Консультант {} вернулся в статус ACTIVE после завершения заявки", consultantId);
+        });
 
         // Перезагружаем с JOIN FETCH для маппера
         return requestRepository.findByIdWithAssociations(saved.getId()).orElse(saved);
@@ -312,6 +339,13 @@ public class RequestService {
 
         Request saved = requestRepository.save(request);
         log.info("Заявка {} возвращена в очередь для повторного назначения", saved.getId());
+
+        // Возвращаем предыдущего консультанта в статус ACTIVE
+        userRepository.findById(previousAssignedUserId).ifPresent(c -> {
+            c.setCurrentStatus(UserStatus.ACTIVE);
+            userRepository.save(c);
+            log.info("Консультант {} вернулся в статус ACTIVE после переназначения заявки", previousAssignedUserId);
+        });
 
         publishEvent(saved, RequestEvent.TYPE_REASSIGNED, reason, previousAssignedUserId);
         return saved;

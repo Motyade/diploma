@@ -907,6 +907,23 @@ paths:
           type: string
           format: uuid
 
+    get:
+      tags: [Stores]
+      summary: Получить отдел по ID
+      responses:
+        "200":
+          description: Отдел
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Department"
+        "404":
+          description: Отдел не найден
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
     put:
       tags: [Stores]
       summary: Обновить отдел

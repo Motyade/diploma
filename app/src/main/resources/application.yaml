@@ -45,7 +45,7 @@ app:
       request-events: "request-events"
   qr:
     # URL, который закодирован внутри QR-кода.
-    scan-base-url: "http://localhost:8087"
+    scan-base-url: "http://217.71.129.139:6008"
 
 springdoc:
   swagger-ui:

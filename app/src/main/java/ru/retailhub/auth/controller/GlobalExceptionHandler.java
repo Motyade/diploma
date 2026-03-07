@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.retailhub.auth.service.AuthService;
 import ru.retailhub.model.ErrorResponse;
+import ru.retailhub.user.service.ShiftService;
+import ru.retailhub.user.service.UserService;
 
 import java.time.OffsetDateTime;
 
@@ -27,8 +29,26 @@ public class GlobalExceptionHandler {
         ErrorResponse error = new ErrorResponse();
         error.setError("REQUEST_ALREADY_ASSIGNED");
         error.setMessage("Заявка уже взята другим консультантом");
-        error.setTimestamp(java.time.OffsetDateTime.now());
+        error.setTimestamp(OffsetDateTime.now());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(ShiftService.ShiftException.class)
+    public ResponseEntity<ErrorResponse> handleShiftException(ShiftService.ShiftException ex) {
+        ErrorResponse error = new ErrorResponse();
+        error.setError("SHIFT_ERROR");
+        error.setMessage(ex.getMessage());
+        error.setTimestamp(OffsetDateTime.now());
+        return ResponseEntity.status(ex.getHttpStatusCode()).body(error);
+    }
+
+    @ExceptionHandler(UserService.UserException.class)
+    public ResponseEntity<ErrorResponse> handleUserException(UserService.UserException ex) {
+        ErrorResponse error = new ErrorResponse();
+        error.setError("USER_ERROR");
+        error.setMessage(ex.getMessage());
+        error.setTimestamp(OffsetDateTime.now());
+        return ResponseEntity.status(ex.getHttpStatusCode()).body(error);
     }
 
     @ExceptionHandler(RuntimeException.class)
@@ -36,7 +56,7 @@ public class GlobalExceptionHandler {
         ErrorResponse error = new ErrorResponse();
         error.setError("BAD_REQUEST");
         error.setMessage(ex.getMessage());
-        error.setTimestamp(java.time.OffsetDateTime.now());
+        error.setTimestamp(OffsetDateTime.now());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 }
