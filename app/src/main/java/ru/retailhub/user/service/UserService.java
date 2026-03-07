@@ -14,6 +14,7 @@ import ru.retailhub.store.entity.Department;
 import ru.retailhub.store.entity.Store;
 import ru.retailhub.store.repository.DepartmentRepository;
 import ru.retailhub.store.repository.StoreRepository;
+import org.hibernate.Hibernate;
 import ru.retailhub.user.entity.DepartmentEmployee;
 import ru.retailhub.user.entity.Role;
 import ru.retailhub.user.entity.User;
@@ -50,10 +51,20 @@ public class UserService {
      * Список сотрудников магазина с опциональным фильтром по роли и пагинацией.
      */
     public Page<User> getUsersByStore(UUID storeId, Role role, int page, int size) {
+        Page<User> usersPage;
         if (role != null) {
-            return userRepository.findByStoreIdAndRole(storeId, role, PageRequest.of(page, size));
+            usersPage = userRepository.findByStoreIdAndRole(storeId, role, PageRequest.of(page, size));
+        } else {
+            usersPage = userRepository.findByStoreId(storeId, PageRequest.of(page, size));
         }
-        return userRepository.findByStoreId(storeId, PageRequest.of(page, size));
+        
+        // Initialize lazy collections within the transaction
+        usersPage.getContent().forEach(user -> {
+            Hibernate.initialize(user.getDepartmentAssignments());
+            user.getDepartmentAssignments().forEach(da -> Hibernate.initialize(da.getDepartment()));
+        });
+        
+        return usersPage;
     }
 
     /**

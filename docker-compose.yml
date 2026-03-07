@@ -3,10 +3,7 @@ services:
     image: postgres:17
     container_name: retailhub-db
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 512M
+
     environment:
       POSTGRES_DB: retailhub
       POSTGRES_USER: retailhub
@@ -20,10 +17,6 @@ services:
     image: confluentinc/cp-zookeeper:7.8.0
     container_name: retailhub-zookeeper
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 400M
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
@@ -35,10 +28,6 @@ services:
     image: confluentinc/cp-kafka:7.8.0
     container_name: retailhub-kafka
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 400M
     environment:
       - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
       - KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9092
@@ -51,10 +40,6 @@ services:
   flyway:
     image: flyway/flyway:10.7.1-alpine
     container_name: retailhub-flyway
-    deploy:
-      resources:
-        limits:
-          memory: 200M
     command: -url=jdbc:postgresql://postgres:5432/retailhub -user=retailhub -password=secret -connectRetries=60 migrate
     volumes:
       - ./app/src/main/resources/db/migration:/flyway/sql
@@ -66,19 +51,14 @@ services:
     build: .
     container_name: retailhub-app
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 500M
     ports:
       - "8087:8087"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/retailhub
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - SPRING_FLYWAY_ENABLED=false
-      - APP_QR_SCAN_BASE_URL=http://217.71.129.139:6008
+      - APP_QR_SCAN_BASE_URL=http://185.221.199.141
       - APP_JWT_SECRET=beAxeaveJiJRK6CIwR_bp-DxQAH9BBRWkv5HfhZOVHVU4JWGA6MFSndFPFd_lE7keRxVpNcuKfopDNeBMfJRBQ
-      - JAVA_TOOL_OPTIONS=-Xmx300m -Xms300m
     depends_on:
       postgres:
         condition: service_started
@@ -91,10 +71,6 @@ services:
     image: nginx:alpine
     container_name: retailhub-nginx
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 100M
     ports:
       - "80:80"
     volumes:

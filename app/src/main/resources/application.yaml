@@ -27,6 +27,7 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        default_batch_fetch_size: 100
 
   flyway:
     enabled: true
@@ -45,7 +46,7 @@ app:
       request-events: "request-events"
   qr:
     # URL, который закодирован внутри QR-кода.
-    scan-base-url: "http://217.71.129.139:6008"
+    scan-base-url: "http://185.221.199.141"
 
 springdoc:
   swagger-ui:
