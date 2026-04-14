@@ -1,82 +1,254 @@
 services:
+  # ─── Infrastructure ────────────────────────────────────────
   postgres:
     image: postgres:17
-    container_name: retailhub-db
-    restart: unless-stopped
-
     environment:
-      POSTGRES_DB: retailhub
       POSTGRES_USER: retailhub
       POSTGRES_PASSWORD: secret
-    ports:
-      - "5434:5432"
     volumes:
-      - retailhub-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
+      - ./init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U retailhub"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.8.0
-    container_name: retailhub-zookeeper
-    restart: unless-stopped
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
-      KAFKA_HEAP_OPTS: "-Xmx256m -Xms256m"
-    ports:
-      - "2181:2181"
 
   kafka:
     image: confluentinc/cp-kafka:7.8.0
-    container_name: retailhub-kafka
-    restart: unless-stopped
-    environment:
-      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
-      - KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9092
-      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
-      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
-      - KAFKA_HEAP_OPTS=-Xmx200m -Xms200m
     depends_on:
       - zookeeper
-
-  flyway:
-    image: flyway/flyway:10.7.1-alpine
-    container_name: retailhub-flyway
-    command: -url=jdbc:postgresql://postgres:5432/retailhub -user=retailhub -password=secret -connectRetries=60 migrate
-    volumes:
-      - ./app/src/main/resources/db/migration:/flyway/sql
-    depends_on:
-      postgres:
-        condition: service_started
-
-  app:
-    build: .
-    container_name: retailhub-app
-    restart: unless-stopped
     ports:
-      - "8087:8087"
+      # Внешний доступ для consumer/producer на другом хосте (ограничьте файрволом по IP)
+      - "9092:9092"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/retailhub
-      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-      - SPRING_FLYWAY_ENABLED=false
-      - APP_QR_SCAN_BASE_URL=http://185.221.199.141
-      - APP_JWT_SECRET=beAxeaveJiJRK6CIwR_bp-DxQAH9BBRWkv5HfhZOVHVU4JWGA6MFSndFPFd_lE7keRxVpNcuKfopDNeBMfJRBQ
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      # PLAINTEXT: внутри Docker-сети; PLAINTEXT_HOST: с хоста и с других серверов по IP:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://${KAFKA_PUBLIC_HOST:-127.0.0.1}:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_HEAP_OPTS: "-Xms192m -Xmx384m"
+
+  # ─── Database Migrations ───────────────────────────────────
+  flyway-auth:
+    image: flyway/flyway:10.7.1-alpine
     depends_on:
       postgres:
-        condition: service_started
+        condition: service_healthy
+    command: -url=jdbc:postgresql://postgres:5432/auth_db -user=retailhub -password=secret -locations=filesystem:/flyway/sql -baselineOnMigrate=true migrate
+    volumes:
+      - ./auth-service/src/main/resources/db/migration:/flyway/sql
+
+  flyway-store:
+    image: flyway/flyway:10.7.1-alpine
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: -url=jdbc:postgresql://postgres:5432/store_db -user=retailhub -password=secret -locations=filesystem:/flyway/sql -baselineOnMigrate=true migrate
+    volumes:
+      - ./store-service/src/main/resources/db/migration:/flyway/sql
+
+  flyway-user:
+    image: flyway/flyway:10.7.1-alpine
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: -url=jdbc:postgresql://postgres:5432/user_db -user=retailhub -password=secret -locations=filesystem:/flyway/sql -baselineOnMigrate=true migrate
+    volumes:
+      - ./user-service/src/main/resources/db/migration:/flyway/sql
+
+  flyway-request:
+    image: flyway/flyway:10.7.1-alpine
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: -url=jdbc:postgresql://postgres:5432/request_db -user=retailhub -password=secret -locations=filesystem:/flyway/sql -baselineOnMigrate=true migrate
+    volumes:
+      - ./request-service/src/main/resources/db/migration:/flyway/sql
+
+  flyway-notification:
+    image: flyway/flyway:10.7.1-alpine
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: -url=jdbc:postgresql://postgres:5432/notification_db -user=retailhub -password=secret -locations=filesystem:/flyway/sql -baselineOnMigrate=true migrate
+    volumes:
+      - ./notification-service/src/main/resources/db/migration:/flyway/sql
+
+  flyway-analytics:
+    image: flyway/flyway:10.7.1-alpine
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: -url=jdbc:postgresql://postgres:5432/analytics_db -user=retailhub -password=secret -locations=filesystem:/flyway/sql -baselineOnMigrate=true migrate
+    volumes:
+      - ./analytics-service/src/main/resources/db/migration:/flyway/sql
+
+  # ─── Microservices ─────────────────────────────────────────
+  api-gateway:
+    build:
+      context: .
+      dockerfile: api-gateway/Dockerfile
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "8180:8080"
+    depends_on:
+      - redis
+    environment:
+      SPRING_DATA_REDIS_HOST: redis
+      APP_JWT_PUBLIC_KEY_PATH: /app/keys/public.pem
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70 -XX:InitialRAMPercentage=25"
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: auth-service/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
       kafka:
         condition: service_started
-      flyway:
+      flyway-auth:
         condition: service_completed_successfully
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/auth_db
+      SPRING_DATASOURCE_USERNAME: retailhub
+      SPRING_DATASOURCE_PASSWORD: secret
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      SPRING_FLYWAY_ENABLED: "false"
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70 -XX:InitialRAMPercentage=25"
 
-  nginx:
-    image: nginx:alpine
-    container_name: retailhub-nginx
-    restart: unless-stopped
+  store-service:
+    build:
+      context: .
+      dockerfile: store-service/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      flyway-store:
+        condition: service_completed_successfully
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/store_db
+      SPRING_DATASOURCE_USERNAME: retailhub
+      SPRING_DATASOURCE_PASSWORD: secret
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      SPRING_FLYWAY_ENABLED: "false"
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70 -XX:InitialRAMPercentage=25"
+      # Публичный URL лендинга (без завершающего /): в QR кодируется {base}/scan/{token}
+      QR_SCAN_BASE_URL: ${QR_SCAN_BASE_URL:-http://localhost}
+
+  user-service:
+    build:
+      context: .
+      dockerfile: user-service/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      flyway-user:
+        condition: service_completed_successfully
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/user_db
+      SPRING_DATASOURCE_USERNAME: retailhub
+      SPRING_DATASOURCE_PASSWORD: secret
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      SPRING_FLYWAY_ENABLED: "false"
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70 -XX:InitialRAMPercentage=25"
+
+  request-service:
+    build:
+      context: .
+      dockerfile: request-service/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      redis:
+        condition: service_healthy
+      flyway-request:
+        condition: service_completed_successfully
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/request_db?stringtype=unspecified
+      SPRING_DATASOURCE_USERNAME: retailhub
+      SPRING_DATASOURCE_PASSWORD: secret
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_FLYWAY_ENABLED: "false"
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70 -XX:InitialRAMPercentage=25"
+
+  notification-service:
+    image: retailhub/notification-service:latest
+    build:
+      context: .
+      dockerfile: notification-service/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      flyway-notification:
+        condition: service_completed_successfully
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/notification_db
+      SPRING_DATASOURCE_USERNAME: retailhub
+      SPRING_DATASOURCE_PASSWORD: secret
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      SPRING_FLYWAY_ENABLED: "false"
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70 -XX:InitialRAMPercentage=25"
+
+  analytics-service:
+    image: retailhub/analytics-service:latest
+    build:
+      context: .
+      dockerfile: analytics-service/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      flyway-analytics:
+        condition: service_completed_successfully
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/analytics_db
+      SPRING_DATASOURCE_USERNAME: retailhub
+      SPRING_DATASOURCE_PASSWORD: secret
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      SPRING_FLYWAY_ENABLED: "false"
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70 -XX:InitialRAMPercentage=25"
+
+  web-app:
+    build: ./web-app
     ports:
       - "80:80"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
-      - app
+      - api-gateway
 
 volumes:
-  retailhub-data:
+  postgres-data:
+  redis-data:

@@ -1,0 +1,20 @@
+package ru.retailhub.user.repository;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import ru.retailhub.user.entity.User;
+
+import java.util.Optional;
+import java.util.UUID;
+
+public interface UserRepository extends JpaRepository<User, UUID> {
+
+    Optional<User> findByPhoneNumber(String phoneNumber);
+
+    boolean existsByPhoneNumber(String phoneNumber);
+
+    Page<User> findByStoreId(UUID storeId, Pageable pageable);
+
+    Page<User> findByStoreIdAndRole(UUID storeId, String role, Pageable pageable);
+}

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>RetailHub WebSocket API</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #fafafa; color: #333; }
+        .topbar { background: #1b1b1b; padding: 14px 24px; display: flex; align-items: center; gap: 20px; }
+        .topbar h1 { color: #fff; font-size: 18px; }
+        .topbar a { color: #89bf04; text-decoration: none; font-size: 14px; }
+        .container { max-width: 960px; margin: 24px auto; padding: 0 16px; }
+        .card { background: #fff; border-radius: 8px; border: 1px solid #e0e0e0; margin-bottom: 16px; overflow: hidden; }
+        .card-header { padding: 16px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .card-header h3 { font-size: 16px; }
+        .card-body { padding: 0 20px 20px; }
+        .channel { border-left: 4px solid #49cc90; }
+        .channel.client { border-left-color: #61affe; }
+        .badge { display: inline-block; padding: 3px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; color: #fff; }
+        .badge.sub { background: #49cc90; }
+        .badge.stomp { background: #7d8492; }
+        .path { font-family: 'Courier New', monospace; font-size: 15px; color: #333; margin-left: 12px; }
+        .desc { color: #666; font-size: 14px; margin: 12px 0; line-height: 1.5; }
+        .param-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+        .param-table th { text-align: left; padding: 8px; background: #f5f5f5; font-size: 13px; border-bottom: 2px solid #ddd; }
+        .param-table td { padding: 8px; font-size: 13px; border-bottom: 1px solid #eee; }
+        .param-table code { background: #f0f0f0; padding: 2px 6px; border-radius: 3px; font-size: 12px; }
+        .event-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+        .event-table th { text-align: left; padding: 10px; background: #f5f5f5; font-size: 13px; border-bottom: 2px solid #ddd; }
+        .event-table td { padding: 10px; font-size: 13px; border-bottom: 1px solid #eee; }
+        .event-badge { padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: bold; color: #fff; }
+        .ev-created { background: #49cc90; }
+        .ev-waiting { background: #fca130; }
+        .ev-escalated { background: #f93e3e; }
+        .ev-assigned { background: #61affe; }
+        .ev-completed { background: #49cc90; }
+        .ev-canceled { background: #7d8492; }
+        .ev-reassigned { background: #9012fe; }
+        .ev-reminded { background: #fca130; }
+        pre { background: #263238; color: #eeffff; padding: 16px; border-radius: 6px; overflow-x: auto; font-size: 13px; line-height: 1.5; margin-top: 12px; }
+        .section-title { font-size: 20px; margin: 24px 0 12px; padding-bottom: 8px; border-bottom: 2px solid #49cc90; }
+        .info-box { background: #e8f5e9; border: 1px solid #c8e6c9; border-radius: 6px; padding: 12px 16px; margin: 12px 0; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <h1>RetailHub WebSocket API</h1>
+        <a href="/swagger-ui.html">&larr; REST API (Swagger)</a>
+    </div>
+
+    <div class="container">
+        <div class="info-box">
+            <strong>Протокол:</strong> STOMP 1.2 over WebSocket + SockJS fallback<br>
+            <strong>Endpoint:</strong> <code id="ws-endpoint-direct">ws://&lt;host&gt;/ws</code> (через Gateway)
+        </div>
+
+        <h2 class="section-title">Каналы подписки</h2>
+
+        <div class="card channel">
+            <div class="card-header">
+                <div>
+                    <span class="badge sub">SUBSCRIBE</span>
+                    <span class="path">/topic/store/{storeId}/requests</span>
+                </div>
+                <span class="badge stomp">STOMP</span>
+            </div>
+            <div class="card-body">
+                <p class="desc">Обновления заявок магазина. Подписчик: <strong>менеджер</strong>.<br>
+                Получает уведомления при создании, ожидании, эскалации, назначении, завершении и переназначении заявок магазина.</p>
+                <table class="param-table">
+                    <tr><th>Параметр</th><th>Тип</th><th>Описание</th></tr>
+                    <tr><td><code>storeId</code></td><td>UUID</td><td>ID магазина (из JWT claims)</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="card channel">
+            <div class="card-header">
+                <div>
+                    <span class="badge sub">SUBSCRIBE</span>
+                    <span class="path">/topic/department/{departmentId}/requests</span>
+                </div>
+                <span class="badge stomp">STOMP</span>
+            </div>
+            <div class="card-body">
+                <p class="desc">Обновления заявок конкретного отдела. Подписчик: <strong>консультант</strong>.<br>
+                Получает уведомления о новых заявках, ожидании (WAITING) и переназначении.</p>
+                <table class="param-table">
+                    <tr><th>Параметр</th><th>Тип</th><th>Описание</th></tr>
+                    <tr><td><code>departmentId</code></td><td>UUID</td><td>ID отдела</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="card channel client">
+            <div class="card-header">
+                <div>
+                    <span class="badge sub">SUBSCRIBE</span>
+                    <span class="path">/queue/request/{clientSessionToken}</span>
+                </div>
+                <span class="badge stomp">STOMP</span>
+            </div>
+            <div class="card-body">
+                <p class="desc">Статус конкретной заявки. Подписчик: <strong>клиент</strong> (после сканирования QR).<br>
+                Получает обновления жизненного цикла заявки (создание, ожидание, эскалация, назначение, завершение, отмена, переназначение). Заменяет polling <code>GET /requests/{id}?session=</code>.</p>
+                <table class="param-table">
+                    <tr><th>Параметр</th><th>Тип</th><th>Описание</th></tr>
+                    <tr><td><code>clientSessionToken</code></td><td>UUID</td><td>Клиентская сессионная метка заявки (из ответа POST /requests)</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <h2 class="section-title">Типы событий</h2>
+
+        <table class="event-table">
+            <tr><th>Событие</th><th>Каналы</th><th>Описание</th></tr>
+            <tr>
+                <td><span class="event-badge ev-created">REQUEST_CREATED</span></td>
+                <td>store, department, client</td>
+                <td>Клиент создал заявку через QR</td>
+            </tr>
+            <tr>
+                <td><span class="event-badge ev-waiting">REQUEST_WAITING</span></td>
+                <td>store, department, client</td>
+                <td>Заявка ждёт > 3 мин, повторное уведомление консультантам</td>
+            </tr>
+            <tr>
+                <td><span class="event-badge ev-escalated">REQUEST_ESCALATED</span></td>
+                <td>store</td>
+                <td>SLA нарушен (> 5 мин), уведомление менеджеру</td>
+            </tr>
+            <tr>
+                <td><span class="event-badge ev-assigned">REQUEST_ASSIGNED</span></td>
+                <td>store, client</td>
+                <td>Консультант взял заявку</td>
+            </tr>
+            <tr>
+                <td><span class="event-badge ev-completed">REQUEST_COMPLETED</span></td>
+                <td>client</td>
+                <td>Обслуживание завершено</td>
+            </tr>
+            <tr>
+                <td><span class="event-badge ev-canceled">REQUEST_CANCELED</span></td>
+                <td>store, client</td>
+                <td>Клиент отменил заявку</td>
+            </tr>
+            <tr>
+                <td><span class="event-badge ev-reassigned">REQUEST_REASSIGNED</span></td>
+                <td>store, department</td>
+                <td>Клиент запросил смену консультанта</td>
+            </tr>
+            <tr>
+                <td><span class="event-badge ev-reminded">REQUEST_REMINDED</span></td>
+                <td>—</td>
+                <td>Клиент напомнил (только FCM push, не WebSocket)</td>
+            </tr>
+        </table>
+
+        <h2 class="section-title">Формат сообщения</h2>
+        <pre>{
+  "eventType": "REQUEST_ASSIGNED",
+  "requestId": "a1b2c3d4-...",
+  "storeId": "1111-...",
+  "departmentId": "2222-...",
+  "departmentName": "Electronics",
+  "status": "ASSIGNED",
+  "assignedUserId": "4444-...",
+  "assignedUserName": "Test Consultant",
+  "clientSessionToken": "5555-...",
+  "timestamp": 1712116800000
+}</pre>
+
+        <h2 class="section-title">Пример подключения (JavaScript)</h2>
+        <pre id="ws-example">const socket = new SockJS(window.location.origin + '/ws');
+const stompClient = Stomp.over(socket);
+
+stompClient.connect({}, () =&gt; {
+    // Менеджер: все заявки магазина
+    stompClient.subscribe('/topic/store/1111-.../requests', (msg) =&gt; {
+        const update = JSON.parse(msg.body);
+        console.log('Store update:', update.eventType, update.status);
+    });
+
+    // Консультант: заявки своего отдела
+    stompClient.subscribe('/topic/department/2222-.../requests', (msg) =&gt; {
+        const update = JSON.parse(msg.body);
+        console.log('Dept update:', update.eventType, update.status);
+    });
+
+                    // Клиент: статус своей заявки (по clientSessionToken)
+                    stompClient.subscribe('/queue/request/5555-...', (msg) =&gt; {
+        const update = JSON.parse(msg.body);
+        console.log('My request:', update.status);
+    });
+});</pre>
+    </div>
+    <script>
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+        document.getElementById('ws-endpoint-direct').textContent = wsProtocol + window.location.host + '/ws';
+    </script>
+</body>
+</html>

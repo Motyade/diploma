@@ -20,17 +20,87 @@
     <description>Event-Driven платформа диспетчеризации консультантов в ритейле</description>
 
     <modules>
-        <module>api-spec</module>
-        <module>app</module>
+        <!-- Shared -->
+        <module>shared/event-contracts</module>
+        <!-- Microservices -->
+        <module>api-gateway</module>
+        <module>auth-service</module>
+        <module>store-service</module>
+        <module>user-service</module>
+        <module>request-service</module>
+        <module>notification-service</module>
+        <module>analytics-service</module>
+        <module>integration-tests</module>
     </modules>
 
     <properties>
         <java.version>21</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
         <swagger-annotations.version>2.2.28</swagger-annotations.version>
         <springdoc.version>2.8.4</springdoc.version>
         <openapi-generator.version>7.8.0</openapi-generator.version>
+        <spring-cloud.version>2025.0.0</spring-cloud.version>
+        <mapstruct.version>1.6.0.Beta1</mapstruct.version>
+        <jjwt.version>0.12.6</jjwt.version>
+        <testcontainers.version>1.20.4</testcontainers.version>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>ru.retailhub</groupId>
+                <artifactId>event-contracts</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>testcontainers-bom</artifactId>
+                <version>${testcontainers.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <configuration>
+                        <annotationProcessorPaths>
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                            </path>
+                        </annotationProcessorPaths>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>windows-javac</id>
+            <activation>
+                <os>
+                    <family>Windows</family>
+                </os>
+            </activation>
+            <properties>
+                <maven.compiler.fork>true</maven.compiler.fork>
+                <maven.compiler.executable>C:\Program Files\Java\jdk-25.0.2\bin\javac.exe</maven.compiler.executable>
+            </properties>
+        </profile>
+    </profiles>
 
 </project>

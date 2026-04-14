@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RetailHub Microservices API</title>
+    <link rel="stylesheet" href="/swagger/swagger-ui.css" />
+    <style>
+        html, body { margin: 0; padding: 0; height: 100%; }
+        #swagger-ui { height: 100%; }
+        #load-error {
+            display: none;
+            margin: 16px;
+            padding: 12px;
+            border: 1px solid #dc2626;
+            color: #991b1b;
+            background: #fef2f2;
+            border-radius: 8px;
+            font-family: Arial, sans-serif;
+        }
+    </style>
+</head>
+<body>
+<div id="load-error">
+    Swagger UI не загрузился. Открой контракт напрямую:
+    <a href="/openapi.yaml">openapi.yaml</a>.
+</div>
+<div id="swagger-ui"></div>
+
+<script src="/swagger/swagger-ui-bundle.js"></script>
+<script src="/swagger/swagger-ui-standalone-preset.js"></script>
+<script>
+    window.addEventListener("load", function () {
+        try {
+            SwaggerUIBundle({
+                url: "/openapi.yaml",
+                dom_id: "#swagger-ui",
+                deepLinking: true,
+                presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
+                plugins: [SwaggerUIBundle.plugins.DownloadUrl],
+                layout: "StandaloneLayout"
+            });
+        } catch (e) {
+            document.getElementById("load-error").style.display = "block";
+            console.error("Swagger UI init error:", e);
+        }
+    });
+</script>
+</body>
+</html>

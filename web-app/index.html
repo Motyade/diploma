@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RetailHub — вызов консультанта</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7/bundles/stomp.umd.min.js"></script>
+    <!-- Резерв, если jsDelivr недоступен (глобал StompJs) -->
+    <script src="https://unpkg.com/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+            color: #1a1a2e;
+            background: #f8f9fc;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+            color: #fff;
+            padding: 1.75rem 1.25rem;
+            text-align: center;
+        }
+
+        header h1 { font-size: 1.65rem; font-weight: 700; letter-spacing: -.5px; }
+        header p { margin-top: .45rem; font-size: .95rem; opacity: .88; line-height: 1.45; }
+
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1.5rem 1.25rem 2rem;
+            gap: 1.25rem;
+            max-width: 520px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 12px rgba(0,0,0,.06);
+            width: 100%;
+        }
+
+        .card h2 { font-size: 1.15rem; color: #0f3460; margin-bottom: .75rem; }
+
+        .form-row { display: flex; gap: .65rem; margin-bottom: .75rem; flex-wrap: wrap; }
+
+        input[type="text"] {
+            flex: 1;
+            min-width: 0;
+            padding: .65rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: .95rem;
+            outline: none;
+            transition: border-color .2s;
+        }
+
+        input[type="text"]:focus { border-color: #0f3460; }
+
+        button {
+            padding: .65rem 1.1rem;
+            border: none;
+            border-radius: 8px;
+            font-size: .88rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background .2s, transform .1s;
+        }
+
+        button:active { transform: scale(.97); }
+
+        .btn-primary { background: #0f3460; color: #fff; }
+        .btn-primary:hover { background: #16213e; }
+        .btn-danger { background: #e74c3c; color: #fff; }
+        .btn-danger:hover { background: #c0392b; }
+        .btn-warn { background: #f39c12; color: #fff; }
+        .btn-warn:hover { background: #d68910; }
+        .btn-secondary { background: #6c757d; color: #fff; }
+        .btn-secondary:hover { background: #5a6268; }
+
+        .hidden { display: none !important; }
+
+        .headline {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #0f3460;
+            line-height: 1.35;
+            margin-bottom: .5rem;
+        }
+
+        .subline { font-size: .92rem; color: #555; line-height: 1.5; margin-bottom: .25rem; }
+
+        .meta-quiet { font-size: .8rem; color: #888; margin-top: .75rem; }
+
+        .actions { display: flex; gap: .65rem; margin-top: 1rem; flex-wrap: wrap; }
+
+        #updates {
+            max-height: 220px;
+            overflow-y: auto;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: .6rem .75rem;
+            margin-top: .5rem;
+        }
+
+        .update-entry {
+            padding: .45rem 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: .86rem;
+            line-height: 1.45;
+        }
+
+        .update-entry:last-child { border-bottom: none; }
+        .update-entry .time { color: #999; font-size: .78rem; margin-right: .35rem; }
+
+        .ws-pill {
+            display: inline-block;
+            font-size: .72rem;
+            font-weight: 600;
+            padding: .2rem .5rem;
+            border-radius: 999px;
+            margin-left: .35rem;
+            vertical-align: middle;
+        }
+
+        .ws-ok { background: #d4edda; color: #155724; }
+        .ws-bad { background: #f8d7da; color: #721c24; }
+
+        .features {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: .65rem;
+            width: 100%;
+        }
+
+        .feature-card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 1rem;
+            box-shadow: 0 1px 8px rgba(0,0,0,.05);
+        }
+
+        .feature-card h3 { font-size: .88rem; margin-bottom: .25rem; color: #0f3460; }
+        .feature-card p { font-size: .82rem; color: #666; line-height: 1.45; }
+
+        footer {
+            text-align: center;
+            padding: 1rem;
+            font-size: .78rem;
+            color: #999;
+            border-top: 1px solid #eee;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>RetailHub</h1>
+        <p id="headerSubtitle">Помощь в торговом зале — без установки приложения</p>
+    </header>
+
+    <main>
+        <div id="globalError" class="card hidden" style="border:1px solid #f5c6cb;background:#fef2f2;color:#c0392b;"></div>
+
+        <div class="features" id="marketingBlurb">
+            <div class="feature-card">
+                <h3>Как это работает</h3>
+                <p>Отсканируйте QR-код в отделе или введите код вручную — консультант получит вызов на телефон сотрудника магазина.</p>
+            </div>
+        </div>
+
+        <div class="card hidden" id="preScanSection">
+            <h2>Вызов консультанта</h2>
+            <div id="preScanDetails" class="subline"></div>
+            <p class="subline" style="margin-top:.75rem;">Нажмите кнопку — заявка уйдёт в очередь отдела, вы сможете следить за статусом на этой странице.</p>
+            <button type="button" id="btnCallConsultant" class="btn-primary" style="margin-top:1rem;" onclick="createRequest()">Вызвать консультанта</button>
+            <div id="preScanError" class="hidden" style="color:#e74c3c;font-size:.88rem;margin-top:.75rem;"></div>
+        </div>
+
+        <div class="card" id="scanSection">
+            <h2>Если знаете код зоны</h2>
+            <p class="subline">Введите UUID из QR (тот же, что в ссылке <code style="font-size:.8rem;">/scan/…</code>).</p>
+            <div class="form-row">
+                <input type="text" id="qrTokenInput" placeholder="Например, 55555555-5555-5555-5555-555555555555" autocomplete="off">
+                <button type="button" class="btn-primary" onclick="createRequest()">Вызвать</button>
+            </div>
+            <div id="errorMsg" style="color:#e74c3c;font-size:.88rem;margin-top:.5rem;" class="hidden"></div>
+        </div>
+
+        <div class="card hidden" id="trackSection">
+            <h2 style="display:flex;align-items:center;flex-wrap:wrap;gap:.35rem;">
+                Ваша заявка
+                <span id="wsPill" class="ws-pill ws-bad hidden">нет связи</span>
+            </h2>
+            <div id="requestHeadline" class="headline"></div>
+            <div id="requestSubline" class="subline"></div>
+            <div id="requestMeta" class="meta-quiet"></div>
+            <div class="actions" id="requestActions"></div>
+            <h3 style="font-size:.95rem;margin-top:1.25rem;color:#0f3460;">Что происходит</h3>
+            <div id="updates"></div>
+        </div>
+    </main>
+
+    <footer>&copy; 2026 RetailHub</footer>
+
+    <script>
+        /** Данные с API и WS — только snake_case, как в остальном RetailHub API. */
+        let stompClient = null;
+        let subscription = null;
+        let currentRequest = null;
+        let pendingQrToken = null;
+        let scanMeta = { department_name: null, store_name: null };
+
+        function escapeHtml(s) {
+            if (s == null || s === '') return '';
+            return String(s)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function showClientError(msg) {
+            const g = document.getElementById('globalError');
+            g.textContent = msg;
+            g.classList.remove('hidden');
+            const pre = document.getElementById('preScanError');
+            pre.textContent = msg;
+            pre.classList.remove('hidden');
+            const em = document.getElementById('errorMsg');
+            em.textContent = msg;
+            em.classList.remove('hidden');
+        }
+
+        function clearClientError() {
+            document.getElementById('globalError').classList.add('hidden');
+            document.getElementById('globalError').textContent = '';
+        }
+
+        function showScanError(msg) {
+            showClientError(msg);
+            setTimeout(() => {
+                document.getElementById('errorMsg').classList.add('hidden');
+                document.getElementById('preScanError').classList.add('hidden');
+                document.getElementById('globalError').classList.add('hidden');
+            }, 12000);
+        }
+
+        function showPreScanError(msg) {
+            showClientError(msg);
+        }
+
+        function formatTime(iso) {
+            if (!iso) return '';
+            const d = new Date(iso);
+            if (Number.isNaN(d.getTime())) return '';
+            return d.toLocaleString('ru-RU', { dateStyle: 'short', timeStyle: 'short' });
+        }
+
+        function statusHeadline(req) {
+            const st = req.status;
+            const name = req.consultant_name;
+            switch (st) {
+                case 'CREATED':
+                case 'WAITING':
+                    return 'Ищем свободного консультанта';
+                case 'ESCALATED':
+                    return 'Сообщили руководителю зала';
+                case 'ASSIGNED':
+                    return name ? ('К вам идёт ' + escapeHtml(name)) : 'Консультант назначен';
+                case 'COMPLETED':
+                    return 'Обслуживание завершено';
+                case 'CANCELED':
+                    return 'Вы отменили вызов';
+                default:
+                    return 'Обрабатываем заявку';
+            }
+        }
+
+        function statusSubline(req) {
+            const dept = req.department_name || scanMeta.department_name;
+            const store = scanMeta.store_name;
+            const parts = [];
+            if (dept) parts.push('Зона: ' + escapeHtml(dept));
+            if (store) parts.push('Магазин: ' + escapeHtml(store));
+            return parts.length ? parts.join(' · ') : '';
+        }
+
+        function humanEventLine(ev) {
+            const t = ev.event_type || ev.eventType;
+            const map = {
+                REQUEST_CREATED: 'Заявка принята, ищем консультанта',
+                REQUEST_WAITING: 'Заявка в очереди',
+                REQUEST_ESCALATED: 'Эскалация: подключился руководитель',
+                REQUEST_ASSIGNED: ev.assigned_user_name || ev.assignedUserName
+                    ? 'Назначен консультант: ' + escapeHtml(ev.assigned_user_name || ev.assignedUserName)
+                    : 'Консультант назначен',
+                REQUEST_COMPLETED: 'Консультант завершил обслуживание',
+                REQUEST_CANCELED: 'Заявка отменена',
+                REQUEST_REASSIGNED: 'Ищем другого консультанта',
+                REQUEST_REMINDED: 'Напоминание отправлено консультанту',
+                LOCAL_CANCEL: 'Вы отменили заявку',
+                POLL_UPDATE: 'Статус обновлён'
+            };
+            return map[t] || (t ? String(t).replace(/_/g, ' ') : 'Обновление');
+        }
+
+        function qrTokenForRequest() {
+            const input = document.getElementById('qrTokenInput');
+            const fromInput = (input && input.value) ? input.value.trim() : '';
+            const fromPending = pendingQrToken ? String(pendingQrToken).trim() : '';
+            return fromPending || fromInput;
+        }
+
+        async function createRequest() {
+            clearClientError();
+            const token = qrTokenForRequest();
+            if (!token) {
+                showScanError('Укажите код зоны или откройте страницу по ссылке из QR.');
+                return;
+            }
+
+            const btnCall = document.getElementById('btnCallConsultant');
+            const btnManual = document.querySelector('#scanSection .btn-primary');
+            const busy = (b) => {
+                if (btnCall) { btnCall.disabled = b; btnCall.textContent = b ? 'Отправка…' : 'Вызвать консультанта'; }
+                if (btnManual && btnManual !== btnCall) { btnManual.disabled = b; btnManual.textContent = b ? '…' : 'Вызвать'; }
+            };
+            busy(true);
+
+            try {
+                const res = await fetch('/api/v1/requests', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify({ qr_token: token })
+                });
+
+                const rawText = await res.text();
+                if (!res.ok) {
+                    showScanError('Не удалось создать заявку (HTTP ' + res.status + '): ' + (rawText || res.statusText));
+                    busy(false);
+                    return;
+                }
+
+                let data;
+                try {
+                    data = JSON.parse(rawText);
+                } catch (pe) {
+                    showScanError('Некорректный ответ сервера. Попробуйте ещё раз.');
+                    busy(false);
+                    return;
+                }
+
+                if (!data.client_session_token || !data.id) {
+                    showScanError('Ответ сервера без данных заявки. Обратитесь к администратору.');
+                    busy(false);
+                    return;
+                }
+
+                currentRequest = data;
+                pendingQrToken = null;
+
+                document.getElementById('marketingBlurb').classList.add('hidden');
+                document.getElementById('preScanSection').classList.add('hidden');
+                document.getElementById('scanSection').classList.add('hidden');
+                document.getElementById('trackSection').classList.remove('hidden');
+
+                try {
+                    sessionStorage.setItem('rh_client_req', JSON.stringify({
+                        id: currentRequest.id,
+                        client_session_token: currentRequest.client_session_token
+                    }));
+                } catch (e) { /* ignore */ }
+
+                renderRequest();
+                connectWebSocket();
+                busy(false);
+            } catch (e) {
+                showScanError('Сеть: ' + e.message);
+                const btnCall = document.getElementById('btnCallConsultant');
+                const btnManual = document.querySelector('#scanSection .btn-primary');
+                if (btnCall) { btnCall.disabled = false; btnCall.textContent = 'Вызвать консультанта'; }
+                if (btnManual && btnManual !== btnCall) { btnManual.disabled = false; btnManual.textContent = 'Вызвать'; }
+            }
+        }
+
+        function renderRequest() {
+            if (!currentRequest) return;
+
+            document.getElementById('requestHeadline').innerHTML = statusHeadline(currentRequest);
+            document.getElementById('requestSubline').innerHTML = statusSubline(currentRequest);
+
+            const created = formatTime(currentRequest.created_at);
+            document.getElementById('requestMeta').textContent = created
+                ? ('Запрос отправлен: ' + created)
+                : '';
+
+            const actions = document.getElementById('requestActions');
+            const s = currentRequest.status;
+            actions.innerHTML = '';
+
+            if (s !== 'COMPLETED' && s !== 'CANCELED') {
+                actions.innerHTML += '<button type="button" class="btn-danger" onclick="cancelRequest()">Отменить вызов</button>';
+            }
+            if (currentRequest.can_remind === true) {
+                actions.innerHTML += '<button type="button" class="btn-warn" onclick="remindRequest()">Напомнить консультанту</button>';
+            }
+            if (currentRequest.can_reassign === true) {
+                actions.innerHTML += '<button type="button" class="btn-secondary" onclick="reassignRequest()">Позвать другого</button>';
+            }
+        }
+
+        function normalizeWsPayload(raw) {
+            return {
+                event_type: raw.event_type ?? raw.eventType,
+                status: raw.status,
+                assigned_user_name: raw.assigned_user_name ?? raw.assignedUserName
+            };
+        }
+
+        function addUpdate(ev) {
+            const container = document.getElementById('updates');
+            const div = document.createElement('div');
+            div.className = 'update-entry';
+            const time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+            div.innerHTML = '<span class="time">' + escapeHtml(time) + '</span>' + humanEventLine(ev);
+            container.prepend(div);
+        }
+
+        function setWsPill(ok) {
+            const pill = document.getElementById('wsPill');
+            pill.classList.remove('hidden', 'ws-ok', 'ws-bad');
+            pill.classList.add(ok ? 'ws-ok' : 'ws-bad');
+            pill.textContent = ok ? 'онлайн' : 'нет связи';
+        }
+
+        function stompClientClass() {
+            try {
+                var g = typeof globalThis !== 'undefined' ? globalThis : window;
+                if (g.StompJs && typeof g.StompJs.Client === 'function') return g.StompJs.Client;
+            } catch (e) { /* ignore */ }
+            return null;
+        }
+
+        function connectWebSocket() {
+            if (!currentRequest || !currentRequest.client_session_token) return;
+
+            var ClientCtor = stompClientClass();
+            if (!ClientCtor) {
+                var pill = document.getElementById('wsPill');
+                pill.classList.remove('hidden', 'ws-ok', 'ws-bad');
+                pill.style.background = '#e2e8f0';
+                pill.style.color = '#475569';
+                pill.textContent = 'без push (опрос каждые 10 с)';
+                return;
+            }
+
+            if (typeof SockJS === 'undefined') {
+                document.getElementById('wsPill').classList.add('hidden');
+                return;
+            }
+
+            const sockUrl = window.location.origin + '/ws';
+
+            if (stompClient) {
+                try { stompClient.deactivate(); } catch (e) { /* ignore */ }
+            }
+
+            stompClient = new ClientCtor({
+                webSocketFactory: () => new SockJS(sockUrl),
+                reconnectDelay: 5000,
+                onConnect: () => {
+                    setWsPill(true);
+                    const session = currentRequest.client_session_token;
+                    subscription = stompClient.subscribe(
+                        '/queue/request/' + session,
+                        (message) => {
+                            try {
+                                const raw = JSON.parse(message.body);
+                                const ev = normalizeWsPayload(raw);
+                                addUpdate(raw);
+                                if (ev.status) {
+                                    currentRequest.status = ev.status;
+                                }
+                                if (ev.assigned_user_name) {
+                                    currentRequest.consultant_name = ev.assigned_user_name;
+                                }
+                                renderRequest();
+                            } catch (e) {
+                                console.error('WS parse error:', e);
+                            }
+                        }
+                    );
+                },
+                onDisconnect: () => setWsPill(false),
+                onStompError: () => setWsPill(false)
+            });
+
+            try {
+                stompClient.activate();
+            } catch (e) {
+                console.warn('WS activate:', e);
+                setWsPill(false);
+            }
+        }
+
+        function sessionQuery() {
+            if (!currentRequest || !currentRequest.client_session_token) return '';
+            return encodeURIComponent(currentRequest.client_session_token);
+        }
+
+        async function cancelRequest() {
+            if (!currentRequest || !currentRequest.id || !currentRequest.client_session_token) return;
+            try {
+                const res = await fetch(
+                    '/api/v1/requests/' + currentRequest.id + '/cancel?session=' + sessionQuery(),
+                    { method: 'POST' }
+                );
+                if (res.ok) {
+                    currentRequest.status = 'CANCELED';
+                    renderRequest();
+                    addUpdate({ event_type: 'LOCAL_CANCEL' });
+                } else {
+                    const text = await res.text();
+                    alert('Не удалось отменить: ' + (text || res.status));
+                }
+            } catch (e) {
+                alert('Сеть: ' + e.message);
+            }
+        }
+
+        async function remindRequest() {
+            if (!currentRequest || !currentRequest.id || !currentRequest.client_session_token) return;
+            try {
+                const res = await fetch(
+                    '/api/v1/requests/' + currentRequest.id + '/remind?session=' + sessionQuery(),
+                    { method: 'POST' }
+                );
+                if (res.ok) {
+                    addUpdate({ event_type: 'REQUEST_REMINDED' });
+                } else {
+                    const text = await res.text();
+                    alert('Напоминание: ' + (text || res.status));
+                }
+            } catch (e) {
+                alert('Сеть: ' + e.message);
+            }
+        }
+
+        async function reassignRequest() {
+            if (!currentRequest || !currentRequest.id || !currentRequest.client_session_token) return;
+            const reason = prompt('Комментарий (необязательно):');
+            try {
+                let url = '/api/v1/requests/' + currentRequest.id + '/reassign?session=' + sessionQuery();
+                if (reason) url += '&reason=' + encodeURIComponent(reason);
+                const res = await fetch(url, { method: 'POST' });
+                if (res.ok) {
+                    currentRequest = await res.json();
+                    renderRequest();
+                    addUpdate({ event_type: 'REQUEST_REASSIGNED', status: currentRequest.status });
+                } else {
+                    const text = await res.text();
+                    alert('Смена консультанта: ' + (text || res.status));
+                }
+            } catch (e) {
+                alert('Сеть: ' + e.message);
+            }
+        }
+
+        async function pollRequestStatus() {
+            if (!currentRequest || !currentRequest.id || !currentRequest.client_session_token) return;
+            if (currentRequest.status === 'COMPLETED' || currentRequest.status === 'CANCELED') return;
+
+            try {
+                const res = await fetch(
+                    '/api/v1/requests/' + currentRequest.id + '?session=' + sessionQuery()
+                );
+                if (res.ok) {
+                    const data = await res.json();
+                    const prev = currentRequest.status;
+                    currentRequest = data;
+                    if (data.status !== prev) {
+                        addUpdate({ event_type: 'POLL_UPDATE', status: data.status });
+                    }
+                    renderRequest();
+                }
+            } catch (e) { /* ignore */ }
+        }
+
+        setInterval(pollRequestStatus, 10000);
+
+        async function initFromScanPath() {
+            const m = window.location.pathname.match(
+                /^\/scan\/([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})\/?$/
+            );
+            if (!m) return;
+
+            pendingQrToken = m[1];
+            document.getElementById('qrTokenInput').value = pendingQrToken;
+            document.getElementById('headerSubtitle').textContent =
+                'Скан QR в отделе — вызов консультанта в один шаг';
+            document.getElementById('marketingBlurb').classList.add('hidden');
+            document.getElementById('scanSection').classList.add('hidden');
+
+            try {
+                const r = await fetch('/api/v1/qr-codes/scan/' + pendingQrToken);
+                if (!r.ok) {
+                    showPreScanError('Код зоны не найден или недоступен.');
+                    document.getElementById('preScanSection').classList.remove('hidden');
+                    return;
+                }
+                const j = await r.json();
+                if (j.is_valid === false) {
+                    showPreScanError('Этот QR-код отключён. Обратитесь к сотруднику магазина.');
+                    document.getElementById('preScanSection').classList.remove('hidden');
+                    return;
+                }
+                scanMeta = {
+                    department_name: j.department_name,
+                    store_name: j.store_name
+                };
+                const lines = [];
+                if (j.department_name) lines.push('<strong>Отдел:</strong> ' + escapeHtml(j.department_name));
+                if (j.store_name) lines.push('<strong>Магазин:</strong> ' + escapeHtml(j.store_name));
+                document.getElementById('preScanDetails').innerHTML = lines.join('<br>') || 'Зона обслуживания';
+                document.getElementById('preScanSection').classList.remove('hidden');
+                document.getElementById('preScanError').classList.add('hidden');
+                document.getElementById('preScanError').textContent = '';
+                clearClientError();
+            } catch (e) {
+                showPreScanError('Не удалось проверить код. Проверьте интернет и попробуйте снова.');
+                document.getElementById('preScanSection').classList.remove('hidden');
+            }
+        }
+
+        initFromScanPath();
+    </script>
+</body>
+</html>

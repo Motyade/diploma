@@ -1,6 +1,10 @@
-target/
-*/target/
-.git/
-.idea/
-*.jar
-*.class
+# **/target/ (Removed to allow local jar deployment)
+**/.git/
+**/.idea/
+**/.mvn/
+**/node_modules/
+**/*.md
+**/docs/
+**/alt-docs/
+**/.gitignore
+**/HELP.md

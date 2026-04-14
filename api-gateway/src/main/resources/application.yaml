@@ -1,0 +1,37 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+
+gateway:
+  # При вынесении notification/analytics на другой хост задайте GATEWAY_* в окружении api-gateway
+  ws-target: ${GATEWAY_WS_TARGET:ws://notification-service:8085}
+  routes:
+    - path-prefix: /api/v1/auth/me
+      target: http://user-service:8083
+    - path-prefix: /api/v1/auth
+      target: http://auth-service:8081
+    - path-prefix: /api/v1/stores
+      target: http://store-service:8082
+    - path-prefix: /api/v1/departments
+      target: http://store-service:8082
+    - path-prefix: /api/v1/qr-codes
+      target: http://store-service:8082
+    - path-prefix: /api/v1/users
+      target: http://user-service:8083
+    - path-prefix: /api/v1/shifts
+      target: http://user-service:8083
+    - path-prefix: /api/v1/requests
+      target: http://request-service:8084
+    - path-prefix: /api/v1/notifications
+      target: ${GATEWAY_NOTIFICATION_TARGET:http://notification-service:8085}
+    - path-prefix: /api/v1/devices
+      target: ${GATEWAY_NOTIFICATION_TARGET:http://notification-service:8085}
+    - path-prefix: /api/v1/analytics
+      target: ${GATEWAY_ANALYTICS_TARGET:http://analytics-service:8086}
+app:
+  jwt:
+    secret: "beAxeaveJiJRK6CIwR_bp-DxQAH9BBRWkv5HfhZOVHVU4JWGA6MFSndFPFd_lE7keRxVpNcuKfopDNeBMfJRBQ"
+
