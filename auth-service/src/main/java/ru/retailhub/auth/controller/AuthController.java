@@ -1,5 +1,6 @@
 package ru.retailhub.auth.controller;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
@@ -30,19 +31,19 @@ public class AuthController {
     }
 
     public record LoginRequest(
-            @NotBlank String phoneNumber,
+            @NotBlank @JsonProperty("phone_number") String phoneNumber,
             @NotBlank String password
     ) {}
 
     public record RefreshRequest(
-            @NotBlank String refreshToken
+            @NotBlank @JsonProperty("refresh_token") String refreshToken
     ) {}
 
     public record TokenResponse(
-            String accessToken,
-            String refreshToken,
-            String tokenType,
-            long expiresIn
+            @JsonProperty("access_token") String accessToken,
+            @JsonProperty("refresh_token") String refreshToken,
+            @JsonProperty("token_type") String tokenType,
+            @JsonProperty("expires_in") long expiresIn
     ) {}
 }
 

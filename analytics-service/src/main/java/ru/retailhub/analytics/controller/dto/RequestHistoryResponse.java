@@ -1,18 +1,22 @@
 package ru.retailhub.analytics.controller.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
-public record RequestHistoryResponse(List<Item> items, long totalElements, int totalPages) {
-
+public record RequestHistoryResponse(
+        List<Item> items,
+        @JsonProperty("total_elements") long totalElements,
+        @JsonProperty("total_pages") int totalPages
+) {
     public record Item(
-            UUID requestId,
-            String departmentName,
+            @JsonProperty("request_id") UUID requestId,
+            @JsonProperty("department_name") String departmentName,
             String status,
-            String assignedUserName,
-            OffsetDateTime createdAt,
-            OffsetDateTime completedAt,
-            Long responseTimeSeconds
+            @JsonProperty("assigned_user_name") String assignedUserName,
+            @JsonProperty("created_at") OffsetDateTime createdAt,
+            @JsonProperty("completed_at") OffsetDateTime completedAt,
+            @JsonProperty("response_time_seconds") Long responseTimeSeconds
     ) {}
 }

@@ -7,7 +7,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import ru.retailhub.auth.controller.AuthController.TokenResponse;
-import ru.retailhub.auth.controller.AuthController.UserProfileResponse;
 import ru.retailhub.auth.entity.Credential;
 import ru.retailhub.auth.repository.CredentialRepository;
 
@@ -113,23 +112,4 @@ class AuthServiceTest {
         verify(jwtService, never()).extractUserId(any());
     }
 
-    @Test
-    void getProfile_success() {
-        Credential credential = buildCredential();
-        when(credentialRepository.findByUserId(userId)).thenReturn(Optional.of(credential));
-
-        UserProfileResponse result = authService.getProfile(userId);
-
-        assertEquals(userId, result.id());
-        assertEquals(phoneNumber, result.phoneNumber());
-        assertEquals(role, result.role());
-        assertEquals(storeId, result.storeId());
-    }
-
-    @Test
-    void getProfile_failsWhenUserNotFound() {
-        when(credentialRepository.findByUserId(userId)).thenReturn(Optional.empty());
-
-        assertThrows(IllegalArgumentException.class, () -> authService.getProfile(userId));
-    }
 }

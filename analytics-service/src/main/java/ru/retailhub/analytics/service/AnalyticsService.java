@@ -73,8 +73,8 @@ public class AnalyticsService {
         return new DashboardResponse(
                 total,
                 completed,
-                Double.isNaN(avgResponse) ? null : avgResponse,
-                Double.isNaN(avgService) ? null : avgService,
+                Double.isNaN(avgResponse) ? 0.0 : avgResponse,
+                Double.isNaN(avgService) ? 0.0 : avgService,
                 escalationRate,
                 breakdown
         );

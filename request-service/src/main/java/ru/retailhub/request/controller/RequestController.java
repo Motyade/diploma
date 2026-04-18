@@ -1,5 +1,6 @@
 package ru.retailhub.request.controller;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +16,6 @@ import ru.retailhub.request.service.RequestService;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -35,6 +35,7 @@ public class RequestController {
     public ResponseEntity<PageResponse<ServiceRequestView>> getRequests(
             @RequestHeader("X-User-Id") UUID userId,
             @RequestHeader("X-Role") String role,
+            @RequestHeader(value = "X-Store-Id", required = false) UUID storeId,
             @RequestParam(required = false) RequestStatus status,
             @RequestParam(value = "department_id", required = false) UUID departmentId,
             @RequestParam(value = "date_from", required = false) LocalDate dateFrom,
@@ -43,7 +44,7 @@ public class RequestController {
             @RequestParam(defaultValue = "20") int size) {
 
         Page<Request> requests = requestService.getRequests(
-                status, departmentId, dateFrom, dateTo, page, size);
+                storeId, status, departmentId, dateFrom, dateTo, page, size);
         List<ServiceRequestView> content = requests.getContent().stream()
                 .map(this::toServiceView)
                 .toList();
@@ -124,37 +125,46 @@ public class RequestController {
         return ResponseEntity.ok(toClientView(reassigned));
     }
 
-    public record CreateRequestBody(@NotNull UUID qrToken) {}
+    public record CreateRequestBody(@NotNull @JsonProperty("qr_token") UUID qrToken) {}
 
-    public record AssignedConsultant(String firstName, String lastName) {}
+    public record AssignedConsultant(
+            @JsonProperty("first_name") String firstName,
+            @JsonProperty("last_name") String lastName
+    ) {}
 
     public record ServiceRequestView(
             UUID id,
-            UUID storeId,
-            UUID departmentId,
-            String departmentName,
-            boolean isEscalated,
-            AssignedConsultant assignedUser,
+            @JsonProperty("store_id") UUID storeId,
+            @JsonProperty("department_id") UUID departmentId,
+            @JsonProperty("department_name") String departmentName,
+            @JsonProperty("is_escalated") boolean isEscalated,
+            @JsonProperty("assigned_user") AssignedConsultant assignedUser,
             RequestStatus status,
-            UUID clientSessionToken,
-            OffsetDateTime createdAt,
-            OffsetDateTime assignedAt,
-            OffsetDateTime completedAt
+            @JsonProperty("client_session_token") UUID clientSessionToken,
+            @JsonProperty("created_at") OffsetDateTime createdAt,
+            @JsonProperty("assigned_at") OffsetDateTime assignedAt,
+            @JsonProperty("completed_at") OffsetDateTime completedAt
     ) {}
 
     public record ClientRequestView(
             UUID id,
-            UUID clientSessionToken,
+            @JsonProperty("client_session_token") UUID clientSessionToken,
             RequestStatus status,
-            String departmentName,
-            String consultantName,
-            boolean canRemind,
-            boolean canReassign,
-            OffsetDateTime createdAt,
-            OffsetDateTime assignedAt
+            @JsonProperty("department_name") String departmentName,
+            @JsonProperty("consultant_name") String consultantName,
+            @JsonProperty("can_remind") boolean canRemind,
+            @JsonProperty("can_reassign") boolean canReassign,
+            @JsonProperty("created_at") OffsetDateTime createdAt,
+            @JsonProperty("assigned_at") OffsetDateTime assignedAt
     ) {}
 
-    public record PageResponse<T>(List<T> content, int page, int size, long totalElements, int totalPages) {}
+    public record PageResponse<T>(
+            List<T> content,
+            int page,
+            int size,
+            @JsonProperty("total_elements") long totalElements,
+            @JsonProperty("total_pages") int totalPages
+    ) {}
 
     private ServiceRequestView toServiceView(Request request) {
         AssignedConsultant assignedConsultant = null;
@@ -164,11 +174,12 @@ public class RequestController {
                 assignedConsultant = new AssignedConsultant(user.getFirstName(), user.getLastName());
             }
         }
+        String departmentName = requestService.findDepartmentName(request.getDepartmentId());
         return new ServiceRequestView(
                 request.getId(),
                 request.getStoreId(),
                 request.getDepartmentId(),
-                null,
+                departmentName,
                 request.getStatus() == RequestStatus.ESCALATED,
                 assignedConsultant,
                 request.getStatus(),
@@ -191,11 +202,12 @@ public class RequestController {
         boolean canReassign = request.getAssignedAt() != null
                 && request.getAssignedAt().plusMinutes(3).isBefore(OffsetDateTime.now());
 
+        String departmentName = requestService.findDepartmentName(request.getDepartmentId());
         return new ClientRequestView(
                 request.getId(),
                 request.getClientSessionToken(),
                 request.getStatus(),
-                null,
+                departmentName,
                 consultantName,
                 canRemind,
                 canReassign,

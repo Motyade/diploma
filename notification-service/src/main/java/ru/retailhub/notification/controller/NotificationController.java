@@ -1,5 +1,6 @@
 package ru.retailhub.notification.controller;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -54,9 +55,15 @@ public class NotificationController {
             String body,
             String type,
             String payload,
-            boolean isRead,
-            Instant createdAt
+            @JsonProperty("is_read") boolean isRead,
+            @JsonProperty("created_at") Instant createdAt
     ) {}
 
-    public record PageResponse<T>(List<T> content, int page, int size, long totalElements, int totalPages) {}
+    public record PageResponse<T>(
+            List<T> content,
+            int page,
+            int size,
+            @JsonProperty("total_elements") long totalElements,
+            @JsonProperty("total_pages") int totalPages
+    ) {}
 }

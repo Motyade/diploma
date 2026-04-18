@@ -26,7 +26,7 @@ public class StoreService {
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
-    public Store createStore(String name, String address, String timezone) {
+    public Store createStore(UUID userId, String name, String address, String timezone) {
         Store store = new Store();
         store.setName(name);
         store.setAddress(address);
@@ -38,6 +38,7 @@ public class StoreService {
                 .eventType(StoreEvent.TYPE_STORE_CREATED)
                 .source("store-service")
                 .timestamp(Instant.now().toEpochMilli())
+                .userId(userId)
                 .storeId(saved.getId())
                 .storeName(saved.getName())
                 .storeAddress(saved.getAddress())
@@ -188,6 +189,7 @@ public class StoreService {
                 .timestamp(Instant.now().toEpochMilli())
                 .storeId(department.getStore().getId())
                 .departmentId(departmentId)
+                .departmentName(department.getName())
                 .qrCodeId(saved.getId())
                 .qrToken(saved.getToken())
                 .qrLabel(saved.getLabel())

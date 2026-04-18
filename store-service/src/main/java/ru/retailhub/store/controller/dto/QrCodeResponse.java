@@ -1,15 +1,16 @@
 package ru.retailhub.store.controller.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
 public record QrCodeResponse(
         UUID id,
-        UUID departmentId,
-        String departmentName,
+        @JsonProperty("department_id") UUID departmentId,
+        @JsonProperty("department_name") String departmentName,
         UUID token,
-        String scanUrl,
+        @JsonProperty("scan_url") String scanUrl,
         String label,
-        boolean isActive,
-        OffsetDateTime createdAt
+        @JsonProperty("is_active") boolean isActive,
+        @JsonProperty("created_at") OffsetDateTime createdAt
 ) {}

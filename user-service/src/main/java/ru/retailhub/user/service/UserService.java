@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.retailhub.events.UserEvent;
 import ru.retailhub.user.entity.DepartmentEmployee;
 import ru.retailhub.user.entity.ReplicaDepartment;
-import ru.retailhub.user.entity.ReplicaStore;
 import ru.retailhub.user.entity.User;
 import ru.retailhub.user.repository.DepartmentEmployeeRepository;
 import ru.retailhub.user.repository.ReplicaDepartmentRepository;
@@ -44,11 +43,12 @@ public class UserService {
 
     public User getUserById(UUID storeId, UUID userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserException("Сотрудник не найден: " + userId));
+                .orElseThrow(() -> new UserException("Сотрудник не найден: " + userId, 404));
 
-        if (user.getStoreId() == null || !user.getStoreId().equals(storeId)) {
-            throw new UserException("Сотрудник " + userId + " не принадлежит вашему магазину", 403);
+        if (storeId != null && user.getStoreId() != null && !user.getStoreId().equals(storeId)) {
+            throw new UserException("Сотрудник " + userId + " не принадлежит магазину " + storeId, 403);
         }
+
         return user;
     }
 
@@ -103,6 +103,16 @@ public class UserService {
         log.info("Удалён сотрудник {}", userId);
 
         publishUserEvent(UserEvent.TYPE_USER_DELETED, user);
+    }
+
+    @Transactional
+    public void assignStoreToUser(UUID userId, UUID storeId) {
+        userRepository.findById(userId).ifPresent(user -> {
+            user.setStoreId(storeId);
+            userRepository.save(user);
+            log.info("Связан магазин {} с пользователем {}", storeId, userId);
+            publishUserEvent(UserEvent.TYPE_USER_UPDATED, user);
+        });
     }
 
     @Transactional

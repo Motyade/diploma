@@ -23,6 +23,7 @@ public class StoreEvent extends BaseEvent {
     public static final String TYPE_QR_CODE_CREATED = "QR_CODE_CREATED";
     public static final String TYPE_QR_CODE_DEACTIVATED = "QR_CODE_DEACTIVATED";
 
+    private UUID userId;
     private UUID storeId;
     private String storeName;
     private String storeAddress;

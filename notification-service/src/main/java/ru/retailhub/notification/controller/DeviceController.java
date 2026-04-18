@@ -1,5 +1,6 @@
 package ru.retailhub.notification.controller;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
@@ -26,8 +27,8 @@ public class DeviceController {
     private final DeviceService deviceService;
 
     public record RegisterDeviceRequest(
-            @NotBlank String fcmToken,
-            String deviceInfo
+            @NotBlank @JsonProperty("fcm_token") String fcmToken,
+            @JsonProperty("device_info") String deviceInfo
     ) {}
 
     @PostMapping
@@ -50,8 +51,8 @@ public class DeviceController {
 
     public record DeviceResponse(
             UUID id,
-            String fcmToken,
-            String deviceInfo,
-            Instant createdAt
+            @JsonProperty("fcm_token") String fcmToken,
+            @JsonProperty("device_info") String deviceInfo,
+            @JsonProperty("created_at") Instant createdAt
     ) {}
 }

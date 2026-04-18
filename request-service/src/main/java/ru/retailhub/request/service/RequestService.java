@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.retailhub.events.RequestEvent;
@@ -41,12 +42,15 @@ public class RequestService {
     }
 
     @Transactional(readOnly = true)
-    public Page<Request> getRequests(RequestStatus status, UUID departmentId,
+    public Page<Request> getRequests(UUID storeId, RequestStatus status, UUID departmentId,
                                      LocalDate dateFrom, LocalDate dateTo,
                                      int page, int size) {
 
         Specification<Request> spec = Specification.where((root, query, cb) -> cb.conjunction());
 
+        if (storeId != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("storeId"), storeId));
+        }
         if (status != null) {
             spec = spec.and((root, query, cb) -> cb.equal(root.get("status"), status));
         }
@@ -68,6 +72,16 @@ public class RequestService {
     @Transactional(readOnly = true)
     public Optional<ReplicaUser> findReplicaUser(UUID userId) {
         return userRepository.findById(userId);
+    }
+
+    @Transactional(readOnly = true)
+    public String findDepartmentName(UUID departmentId) {
+        if (departmentId == null) return null;
+        return qrCodeRepository.findAllByDepartmentId(departmentId).stream()
+                .map(ReplicaQrCode::getDepartmentName)
+                .filter(n -> n != null && !n.isEmpty())
+                .findFirst()
+                .orElse(null);
     }
 
     @Transactional
@@ -117,7 +131,11 @@ public class RequestService {
                 .orElseThrow(() -> new RuntimeException("Консультант не найден: " + consultantId));
 
         if ("OFFLINE".equals(consultant.getCurrentStatus())) {
-            throw new RuntimeException("Нельзя назначить заявку: консультант не на смене (OFFLINE)");
+            throw new RequestValidationException(
+                    HttpStatus.PRECONDITION_FAILED,
+                    "CONSULTANT_SHIFT_NOT_STARTED",
+                    "Нельзя назначить заявку: консультант не на смене (OFFLINE)"
+            );
         }
         if ("BUSY".equals(consultant.getCurrentStatus())) {
             throw new RuntimeException("Нельзя назначить заявку: консультант уже занят (BUSY)");

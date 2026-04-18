@@ -58,11 +58,16 @@ public class JwtValidationFilter implements WebFilter {
                     .parseSignedClaims(token)
                     .getPayload();
 
-            ServerHttpRequest mutated = exchange.getRequest().mutate()
+            var requestBuilder = exchange.getRequest().mutate()
                     .header("X-User-Id", claims.getSubject())
-                    .header("X-Role", claims.get("role", String.class))
-                    .header("X-Store-Id", String.valueOf(claims.get("storeId")))
-                    .build();
+                    .header("X-Role", claims.get("role", String.class));
+
+            Object storeId = claims.get("storeId");
+            if (storeId != null) {
+                requestBuilder.header("X-Store-Id", String.valueOf(storeId));
+            }
+
+            ServerHttpRequest mutated = requestBuilder.build();
 
             return chain.filter(exchange.mutate().request(mutated).build());
         } catch (Exception e) {
@@ -75,7 +80,8 @@ public class JwtValidationFilter implements WebFilter {
         for (String p : PUBLIC_PATHS) {
             if (path.startsWith(p)) return true;
         }
-        if (path.startsWith("/api/v1/requests")) {
+        if (path.equals("/api/v1/requests")) return true;
+        if (path.startsWith("/api/v1/requests/")) {
             if (path.endsWith("/cancel") || path.endsWith("/remind") || path.endsWith("/reassign")) return true;
             if (path.matches("/api/v1/requests/[^/]+$")) return true;
         }

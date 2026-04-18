@@ -12,6 +12,7 @@ import ru.retailhub.user.entity.ReplicaDepartment;
 import ru.retailhub.user.entity.ReplicaStore;
 import ru.retailhub.user.repository.ReplicaDepartmentRepository;
 import ru.retailhub.user.repository.ReplicaStoreRepository;
+import ru.retailhub.user.service.UserService;
 
 @Slf4j
 @Component
@@ -20,6 +21,7 @@ public class StoreEventConsumer {
 
     private final ReplicaStoreRepository replicaStoreRepository;
     private final ReplicaDepartmentRepository replicaDepartmentRepository;
+    private final UserService userService;
     private final ObjectMapper objectMapper;
 
     @KafkaListener(topics = EventTopics.STORE_EVENTS, groupId = "user-service")
@@ -51,6 +53,10 @@ public class StoreEventConsumer {
 
         replicaStoreRepository.save(store);
         log.info("Upsert реплика магазина: {}", event.getStoreId());
+
+        if (event.getUserId() != null) {
+            userService.assignStoreToUser(event.getUserId(), event.getStoreId());
+        }
     }
 
     private void upsertDepartment(StoreEvent event) {

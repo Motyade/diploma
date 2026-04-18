@@ -41,7 +41,11 @@ public class ShiftController {
 
     @GetMapping("/active")
     public ResponseEntity<List<Map<String, Object>>> getActiveShifts(
-            @RequestHeader("X-Store-Id") UUID storeId) {
+            @RequestHeader(value = "X-Store-Id", required = false) UUID storeId) {
+
+        if (storeId == null) {
+            return ResponseEntity.ok(List.of());
+        }
 
         List<Map<String, Object>> shifts = shiftService.getActiveShifts(storeId)
                 .stream().map(shiftMapper::toMap).toList();

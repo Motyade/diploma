@@ -1,5 +1,6 @@
 package ru.retailhub.user.controller;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -41,10 +42,20 @@ public class UserController {
 
     @GetMapping
     public ResponseEntity<Map<String, Object>> getUsers(
-            @RequestHeader("X-Store-Id") UUID storeId,
+            @RequestHeader(value = "X-Store-Id", required = false) UUID storeId,
             @RequestParam(required = false) String role,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
+
+        if (storeId == null) {
+            return ResponseEntity.ok(Map.of(
+                    "content", List.of(),
+                    "page", page,
+                    "size", size,
+                    "total_elements", 0,
+                    "total_pages", 0
+            ));
+        }
 
         Page<User> usersPage = userService.getUsersByStore(storeId, role, page, size);
 
@@ -62,7 +73,7 @@ public class UserController {
     @GetMapping("/me")
     public ResponseEntity<Map<String, Object>> getMyProfile(
             @RequestHeader("X-User-Id") UUID userId,
-            @RequestHeader("X-Store-Id") UUID storeId) {
+            @RequestHeader(value = "X-Store-Id", required = false) UUID storeId) {
 
         User user = userService.getUserById(storeId, userId);
         return ResponseEntity.ok(userMapper.toMap(user));
@@ -113,21 +124,21 @@ public class UserController {
     }
 
     public record CreateUserRequest(
-            @NotBlank String phoneNumber,
+            @NotBlank @JsonProperty("phone_number") String phoneNumber,
             @NotBlank String password,
-            @NotBlank String firstName,
-            @NotBlank String lastName,
+            @NotBlank @JsonProperty("first_name") String firstName,
+            @NotBlank @JsonProperty("last_name") String lastName,
             @NotBlank String role,
-            List<UUID> departmentIds
+            @JsonProperty("department_ids") List<UUID> departmentIds
     ) {}
 
     public record UpdateUserRequest(
-            String firstName,
-            String lastName
+            @JsonProperty("first_name") String firstName,
+            @JsonProperty("last_name") String lastName
     ) {}
 
     public record AssignDepartmentsRequest(
-            @NotNull List<UUID> departmentIds
+            @NotNull @JsonProperty("department_ids") List<UUID> departmentIds
     ) {}
 
     public record ErrorResponse(String error, String message, OffsetDateTime timestamp) {}

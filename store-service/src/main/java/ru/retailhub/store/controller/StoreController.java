@@ -26,17 +26,26 @@ public class StoreController {
     public ResponseEntity<StoreResponse> createStore(
             @RequestHeader("X-User-Id") UUID userId,
             @RequestHeader("X-Role") String role,
+            @RequestHeader(value = "X-Store-Id", required = false) String storeIdHeader,
             @Valid @RequestBody CreateStoreRequest request) {
 
+        if (storeIdHeader != null && !storeIdHeader.isEmpty() && !"null".equals(storeIdHeader)) {
+            throw new RuntimeException("У вас уже есть привязанный магазин (ID: " + storeIdHeader + ")");
+        }
+
         Store store = storeService.createStore(
-                request.name(), request.address(), request.timezone());
+                userId, request.name(), request.address(), request.timezone());
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(storeMapper.toResponse(store));
     }
 
     @GetMapping("/stores/my")
     public ResponseEntity<StoreResponse> getMyStore(
-            @RequestHeader("X-Store-Id") UUID storeId) {
+            @RequestHeader(value = "X-Store-Id", required = false) UUID storeId) {
+
+        if (storeId == null) {
+            return ResponseEntity.notFound().build();
+        }
 
         Store store = storeService.getStoreById(storeId);
         return ResponseEntity.ok(storeMapper.toResponse(store));
@@ -56,7 +65,11 @@ public class StoreController {
 
     @GetMapping("/stores/my/departments")
     public ResponseEntity<List<DepartmentResponse>> listDepartments(
-            @RequestHeader("X-Store-Id") UUID storeId) {
+            @RequestHeader(value = "X-Store-Id", required = false) UUID storeId) {
+
+        if (storeId == null) {
+            return ResponseEntity.ok(List.of());
+        }
 
         List<DepartmentResponse> departments = storeService.getDepartmentsByStore(storeId)
                 .stream()

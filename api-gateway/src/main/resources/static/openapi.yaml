@@ -1189,7 +1189,9 @@ paths:
       tags: [Requests]
       summary: Взять заявку (CONSULTANT)
       description: |
-        Если уже взята — 409. Побочные эффекты:
+        Если уже взята — 409.
+        Если консультант не на смене (OFFLINE) — 412 с кодом ошибки CONSULTANT_SHIFT_NOT_STARTED.
+        Побочные эффекты:
         - Заявка → ASSIGNED, консультант → BUSY
         - Kafka → RequestAssigned
       parameters:
@@ -1208,6 +1210,12 @@ paths:
                 $ref: "#/components/schemas/ServiceRequest"
         "409":
           description: Уже взята другим
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "412":
+          description: Консультант не на смене (CONSULTANT_SHIFT_NOT_STARTED)
           content:
             application/json:
               schema:
