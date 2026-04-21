@@ -58,6 +58,7 @@ public class UserEventConsumer {
         log.info("Реплика пользователя {} создана ({} {})",
                 user.getId(), user.getFirstName(), user.getLastName());
 
+        userDepartmentRepository.deleteByUserId(event.getUserId());
         saveDepartments(event.getUserId(), event.getDepartmentIds());
     }
 

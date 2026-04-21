@@ -56,6 +56,7 @@ public class UserEventConsumer {
                 .currentStatus(event.getCurrentStatus() != null ? event.getCurrentStatus() : "OFFLINE")
                 .build();
         replicaUserRepository.save(user);
+        replicaUserDepartmentRepository.deleteByUserId(event.getUserId());
         saveDepartments(event.getUserId(), event.getDepartmentIds());
         log.debug("Реплика пользователя {} создана", event.getUserId());
     }

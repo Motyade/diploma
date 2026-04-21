@@ -12,6 +12,7 @@ import ru.retailhub.events.RequestEvent;
 import ru.retailhub.events.UserEvent;
 import ru.retailhub.user.entity.DepartmentEmployee;
 import ru.retailhub.user.entity.User;
+import ru.retailhub.user.idempotency.IdempotencyGuard;
 import ru.retailhub.user.repository.DepartmentEmployeeRepository;
 import ru.retailhub.user.repository.UserRepository;
 import ru.retailhub.user.service.ShiftService;
@@ -30,6 +31,9 @@ public class RequestEventConsumer {
     private final ShiftService shiftService;
     private final ApplicationEventPublisher eventPublisher;
     private final ObjectMapper objectMapper;
+    private final IdempotencyGuard idempotencyGuard;
+
+    private static final String CONSUMER_GROUP = "user-service:request-events";
 
     @KafkaListener(topics = EventTopics.REQUEST_EVENTS, groupId = "user-service")
     @Transactional
@@ -37,6 +41,10 @@ public class RequestEventConsumer {
         try {
             RequestEvent event = objectMapper.readValue(message, RequestEvent.class);
             log.info("Получено request-event: type={}, requestId={}", event.getEventType(), event.getRequestId());
+
+            if (!idempotencyGuard.acquire(CONSUMER_GROUP, event.getEventId())) {
+                return;
+            }
 
             switch (event.getEventType()) {
                 case RequestEvent.TYPE_ASSIGNED -> handleAssigned(event);
