@@ -26,10 +26,8 @@ info:
     name: RetailHub Team
 
 servers:
-  - url: http://localhost:8080/api/v1
-    description: Local development
-  - url: http://83.147.255.205:8180/api/v1
-    description: Production (Direct IP)
+  - url: https://83.147.255.205/api/v1
+    description: Production
 
 tags:
   - name: Auth
@@ -1502,7 +1500,20 @@ paths:
     get:
       tags: [Analytics]
       summary: Дашборд менеджера
-      description: Сводка за сегодня.
+      description: |
+        Сводка по магазину за выбранный период.
+        - `today` (по умолчанию) — с начала текущего дня (UTC).
+        - `week` — за последние 7 дней.
+        - `month` — за последние 30 дней.
+      parameters:
+        - name: period
+          in: query
+          required: false
+          description: Период выборки. По умолчанию `today`.
+          schema:
+            type: string
+            enum: [today, week, month]
+            default: today
       responses:
         "200":
           description: Дашборд

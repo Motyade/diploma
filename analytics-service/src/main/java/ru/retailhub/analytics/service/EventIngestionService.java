@@ -8,10 +8,12 @@ import ru.retailhub.analytics.entity.DimDepartment;
 import ru.retailhub.analytics.entity.DimStore;
 import ru.retailhub.analytics.entity.DimUser;
 import ru.retailhub.analytics.entity.FactRequest;
+import ru.retailhub.analytics.entity.FactUserStatusInterval;
 import ru.retailhub.analytics.repository.DimDepartmentRepository;
 import ru.retailhub.analytics.repository.DimStoreRepository;
 import ru.retailhub.analytics.repository.DimUserRepository;
 import ru.retailhub.analytics.repository.FactRequestRepository;
+import ru.retailhub.analytics.repository.FactUserStatusIntervalRepository;
 import ru.retailhub.events.RequestEvent;
 import ru.retailhub.events.StoreEvent;
 import ru.retailhub.events.UserEvent;
@@ -30,6 +32,7 @@ public class EventIngestionService {
     private final DimStoreRepository dimStoreRepository;
     private final DimDepartmentRepository dimDepartmentRepository;
     private final DimUserRepository dimUserRepository;
+    private final FactUserStatusIntervalRepository statusIntervalRepository;
 
     @Transactional
     public void handleRequestEvent(RequestEvent event) {
@@ -121,6 +124,7 @@ public class EventIngestionService {
 
     @Transactional
     public void handleUserEvent(UserEvent event) {
+        OffsetDateTime eventTime = toOffsetDateTime(event.getTimestamp());
         switch (event.getEventType()) {
             case UserEvent.TYPE_USER_CREATED, UserEvent.TYPE_USER_UPDATED -> {
                 DimUser user = dimUserRepository.findById(event.getUserId())
@@ -131,8 +135,49 @@ public class EventIngestionService {
                 user.setRole(event.getRole());
                 dimUserRepository.save(user);
             }
+            case UserEvent.TYPE_USER_STATUS_CHANGED -> {
+                String newStatus = event.getCurrentStatus();
+                if (newStatus == null || newStatus.isBlank()) {
+                    log.debug("USER_STATUS_CHANGED без current_status, userId={}", event.getUserId());
+                    return;
+                }
+                closeOpenInterval(event.getUserId(), eventTime);
+                if (!"OFFLINE".equalsIgnoreCase(newStatus)) {
+                    openInterval(event.getUserId(), event.getStoreId(), newStatus.toUpperCase(), eventTime);
+                }
+            }
+            case UserEvent.TYPE_SHIFT_STARTED -> {
+                closeOpenInterval(event.getUserId(), eventTime);
+                openInterval(event.getUserId(), event.getStoreId(), "ACTIVE", eventTime);
+            }
+            case UserEvent.TYPE_SHIFT_ENDED, UserEvent.TYPE_USER_DELETED -> {
+                closeOpenInterval(event.getUserId(), eventTime);
+            }
             default -> log.debug("Ignoring user event type: {}", event.getEventType());
         }
+    }
+
+    private void closeOpenInterval(java.util.UUID userId, OffsetDateTime endedAt) {
+        statusIntervalRepository.findFirstByUserIdAndEndedAtIsNullOrderByStartedAtDesc(userId)
+                .ifPresent(open -> {
+                    OffsetDateTime safeEnd = (open.getStartedAt() != null && endedAt.isBefore(open.getStartedAt()))
+                            ? open.getStartedAt()
+                            : endedAt;
+                    open.setEndedAt(safeEnd);
+                    // saveAndFlush, чтобы UPDATE долетел до БД ДО последующего INSERT нового интервала.
+                    // Иначе Hibernate реордерит (INSERT перед UPDATE) и unique partial index на open ломается.
+                    statusIntervalRepository.saveAndFlush(open);
+                });
+    }
+
+    private void openInterval(java.util.UUID userId, java.util.UUID storeId, String status, OffsetDateTime startedAt) {
+        FactUserStatusInterval interval = FactUserStatusInterval.builder()
+                .userId(userId)
+                .storeId(storeId)
+                .status(status)
+                .startedAt(startedAt)
+                .build();
+        statusIntervalRepository.save(interval);
     }
 
     private OffsetDateTime toOffsetDateTime(long epochMillis) {

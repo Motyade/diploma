@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import ru.retailhub.analytics.controller.dto.ConsultantDetailedStatsResponse;
 import ru.retailhub.analytics.controller.dto.ConsultantStatsResponse;
 import ru.retailhub.analytics.controller.dto.DashboardResponse;
 import ru.retailhub.analytics.controller.dto.RequestHistoryResponse;
@@ -33,7 +34,7 @@ public class AnalyticsController {
             @RequestParam(defaultValue = "today") String period) {
         
         if (storeId == null) {
-            return ResponseEntity.ok(new DashboardResponse(0, 0, 0.0, 0.0, 0.0, java.util.Map.of()));
+            return ResponseEntity.ok(new DashboardResponse(0, 0, 0, 0.0, 0.0));
         }
         
         return ResponseEntity.ok(analyticsService.getDashboard(storeId, period));
@@ -42,8 +43,8 @@ public class AnalyticsController {
     @GetMapping("/consultants")
     public ResponseEntity<List<ConsultantStatsResponse>> consultantStats(
             @RequestHeader(value = "X-Store-Id", required = false) UUID storeId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo) {
+            @RequestParam(name = "date_from") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
+            @RequestParam(name = "date_to") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo) {
         
         if (storeId == null) {
             return ResponseEntity.ok(List.of());
@@ -55,10 +56,10 @@ public class AnalyticsController {
     }
 
     @GetMapping("/consultants/{userId}")
-    public ResponseEntity<ConsultantStatsResponse> consultantDetail(
+    public ResponseEntity<ConsultantDetailedStatsResponse> consultantDetail(
             @PathVariable UUID userId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo) {
+            @RequestParam(name = "date_from") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
+            @RequestParam(name = "date_to") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo) {
 
         OffsetDateTime from = dateFrom.atStartOfDay().atOffset(ZoneOffset.UTC);
         OffsetDateTime to = dateTo.plusDays(1).atStartOfDay().atOffset(ZoneOffset.UTC);
@@ -68,15 +69,15 @@ public class AnalyticsController {
     @GetMapping("/requests")
     public ResponseEntity<RequestHistoryResponse> requestHistory(
             @RequestHeader(value = "X-Store-Id", required = false) UUID storeId,
-            @RequestParam(required = false) UUID departmentId,
+            @RequestParam(name = "department_id", required = false) UUID departmentId,
             @RequestParam(required = false) String status,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+            @RequestParam(name = "date_from", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
+            @RequestParam(name = "date_to", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         
         if (storeId == null) {
-            return ResponseEntity.ok(new RequestHistoryResponse(java.util.List.of(), 0, 0));
+            return ResponseEntity.ok(new RequestHistoryResponse(java.util.List.of(), page, size, 0L, 0));
         }
 
         OffsetDateTime from = dateFrom != null ? dateFrom.atStartOfDay().atOffset(ZoneOffset.UTC) : null;

@@ -30,11 +30,37 @@ public interface FactRequestRepository extends JpaRepository<FactRequest, UUID> 
             @Param("dateTo") OffsetDateTime dateTo);
 
     @Query("""
+            SELECT COUNT(DISTINCT f.assignedUserId)
+            FROM FactRequest f
+            WHERE f.storeId = :storeId
+              AND f.assignedUserId IS NOT NULL
+              AND f.createdAt >= :dateFrom
+              AND f.createdAt < :dateTo
+            """)
+    long countActiveConsultants(
+            @Param("storeId") UUID storeId,
+            @Param("dateFrom") OffsetDateTime dateFrom,
+            @Param("dateTo") OffsetDateTime dateTo);
+
+    @Query("""
+            SELECT AVG(f.responseTimeSeconds) AS avgResponseTime,
+                   AVG(f.serviceTimeSeconds) AS avgServiceTime
+            FROM FactRequest f
+            WHERE f.storeId = :storeId
+              AND f.createdAt >= :dateFrom
+              AND f.createdAt < :dateTo
+            """)
+    StoreAveragesProjection storeAverages(
+            @Param("storeId") UUID storeId,
+            @Param("dateFrom") OffsetDateTime dateFrom,
+            @Param("dateTo") OffsetDateTime dateTo);
+
+    @Query("""
             SELECT f.assignedUserId AS userId,
                    AVG(f.responseTimeSeconds) AS avgResponseTime,
                    AVG(f.serviceTimeSeconds) AS avgServiceTime,
                    SUM(CASE WHEN f.status = 'COMPLETED' THEN 1 ELSE 0 END) AS completedCount,
-                   SUM(f.reassignedCount) AS totalReassigned
+                   COUNT(f) AS totalRequests
             FROM FactRequest f
             WHERE f.storeId = :storeId
               AND f.assignedUserId IS NOT NULL
@@ -51,7 +77,6 @@ public interface FactRequestRepository extends JpaRepository<FactRequest, UUID> 
             SELECT AVG(f.responseTimeSeconds) AS avgResponseTime,
                    AVG(f.serviceTimeSeconds) AS avgServiceTime,
                    SUM(CASE WHEN f.status = 'COMPLETED' THEN 1 ELSE 0 END) AS completedCount,
-                   SUM(f.reassignedCount) AS totalReassigned,
                    COUNT(f) AS totalRequests
             FROM FactRequest f
             WHERE f.assignedUserId = :userId
@@ -59,6 +84,22 @@ public interface FactRequestRepository extends JpaRepository<FactRequest, UUID> 
               AND f.createdAt < :dateTo
             """)
     ConsultantDetailProjection consultantDetail(
+            @Param("userId") UUID userId,
+            @Param("dateFrom") OffsetDateTime dateFrom,
+            @Param("dateTo") OffsetDateTime dateTo);
+
+    @Query(value = """
+            SELECT CAST(date_trunc('day', f.created_at) AS date) AS day,
+                   SUM(CASE WHEN f.status = 'COMPLETED' THEN 1 ELSE 0 END) AS completed_count,
+                   AVG(f.response_time_seconds) AS avg_response_time
+            FROM fact_requests f
+            WHERE f.assigned_user_id = CAST(:userId AS uuid)
+              AND f.created_at >= CAST(:dateFrom AS timestamptz)
+              AND f.created_at < CAST(:dateTo AS timestamptz)
+            GROUP BY day
+            ORDER BY day
+            """, nativeQuery = true)
+    List<Object[]> consultantDailyBreakdown(
             @Param("userId") UUID userId,
             @Param("dateFrom") OffsetDateTime dateFrom,
             @Param("dateTo") OffsetDateTime dateTo);
@@ -90,14 +131,19 @@ public interface FactRequestRepository extends JpaRepository<FactRequest, UUID> 
         Double getAvgResponseTime();
         Double getAvgServiceTime();
         Long getCompletedCount();
-        Long getTotalReassigned();
+        Long getTotalRequests();
     }
 
     interface ConsultantDetailProjection {
         Double getAvgResponseTime();
         Double getAvgServiceTime();
         Long getCompletedCount();
-        Long getTotalReassigned();
         Long getTotalRequests();
     }
+
+    interface StoreAveragesProjection {
+        Double getAvgResponseTime();
+        Double getAvgServiceTime();
+    }
+
 }

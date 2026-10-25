@@ -61,7 +61,10 @@ public class NotificationRouter {
 
     private void handleEscalated(RequestEvent event) {
         String title = "Эскалация заявки";
-        String body = "Заявка #" + shortId(event.getRequestId()) + " эскалирована — " + event.getReason();
+        String reason = (event.getReason() == null || event.getReason().isBlank())
+                ? "превышено время ожидания SLA"
+                : event.getReason();
+        String body = "Заявка #" + shortId(event.getRequestId()) + " эскалирована — " + reason;
 
         List<UUID> managerIds = replicaUserRepository
                 .findByStoreIdAndRole(event.getStoreId(), "MANAGER")
@@ -81,6 +84,10 @@ public class NotificationRouter {
         if (event.getStoreId() != null) {
             webSocketNotifier.notifyStore(event.getStoreId(), event);
         }
+        // department-канал: остальные консультанты отдела должны убрать заявку из списка ожидающих
+        if (event.getDepartmentId() != null) {
+            webSocketNotifier.notifyDepartment(event.getDepartmentId(), event);
+        }
     }
 
     private void handleCompleted(RequestEvent event) {
@@ -89,6 +96,9 @@ public class NotificationRouter {
         }
         if (event.getStoreId() != null) {
             webSocketNotifier.notifyStore(event.getStoreId(), event);
+        }
+        if (event.getDepartmentId() != null) {
+            webSocketNotifier.notifyDepartment(event.getDepartmentId(), event);
         }
     }
 
@@ -118,6 +128,12 @@ public class NotificationRouter {
     private void handleCanceled(RequestEvent event) {
         if (event.getClientSessionToken() != null) {
             webSocketNotifier.notifyClientSession(event.getClientSessionToken(), event);
+        }
+        if (event.getStoreId() != null) {
+            webSocketNotifier.notifyStore(event.getStoreId(), event);
+        }
+        if (event.getDepartmentId() != null) {
+            webSocketNotifier.notifyDepartment(event.getDepartmentId(), event);
         }
         if (event.getAssignedUserId() == null) return;
 

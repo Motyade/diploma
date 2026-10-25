@@ -1,13 +1,11 @@
 package ru.retailhub.analytics.controller.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Map;
 
 public record DashboardResponse(
-        @JsonProperty("total_requests") long totalRequests,
-        @JsonProperty("completed_count") long completedCount,
-        @JsonProperty("avg_response_time_seconds") Double avgResponseTimeSeconds,
-        @JsonProperty("avg_service_time_seconds") Double avgServiceTimeSeconds,
-        @JsonProperty("escalation_rate") double escalationRate,
-        @JsonProperty("status_breakdown") Map<String, Long> statusBreakdown
+        @JsonProperty("total_requests_today") long totalRequestsToday,
+        @JsonProperty("completed_requests_today") long completedRequestsToday,
+        @JsonProperty("active_consultants") int activeConsultants,
+        @JsonProperty("avg_reaction_time_seconds") double avgReactionTimeSeconds,
+        @JsonProperty("avg_service_time_seconds") double avgServiceTimeSeconds
 ) {}

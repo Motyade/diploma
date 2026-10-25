@@ -1,0 +1,140 @@
+asyncapi: 2.6.0
+info:
+  title: RetailHub Realtime API
+  version: 1.1.0
+  description: |
+    STOMP-over-WebSocket уведомления о заявках клиентов.
+
+    **Endpoint-ы:**
+      * `/ws-native` — чистый STOMP-over-WebSocket (для нативных клиентов).
+      * `/ws` — STOMP + SockJS-fallback (для веб-клиента).
+
+    **Аутентификация:** JWT в STOMP CONNECT-кадре (`Authorization: Bearer <token>`).
+    Без JWT клиент может подписаться **только** на `/queue/request/{clientSessionToken}`.
+
+    **Авторизация SUBSCRIBE:**
+      * `/topic/store/{storeId}/requests` — MANAGER/ADMIN своего магазина (`storeId` из JWT == `storeId` в подписке).
+      * `/topic/department/{departmentId}/requests` — CONSULTANT с делегированной компетенцией на отдел; либо MANAGER/ADMIN.
+      * `/queue/request/{clientSessionToken}` — клиент после QR (без JWT, токен заявки сам по себе secret).
+
+defaultContentType: application/json
+
+servers:
+  prod-native:
+    url: 83.147.255.205/ws-native
+    protocol: wss
+    description: Чистый STOMP-over-WebSocket (для нативных мобильных клиентов).
+    security:
+      - stompJwt: []
+  prod-sockjs:
+    url: 83.147.255.205/ws
+    protocol: wss
+    description: STOMP-over-WebSocket с SockJS-fallback (для веб-клиента).
+    security:
+      - stompJwt: []
+
+components:
+  securitySchemes:
+    stompJwt:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT передаётся не в HTTP-заголовке handshake, а в STOMP CONNECT-кадре:
+        `Authorization: Bearer <token>`.
+
+  messages:
+    RequestUpdate:
+      name: RequestUpdate
+      title: Обновление статуса заявки
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/RequestUpdatePayload'
+
+  schemas:
+    RequestUpdatePayload:
+      type: object
+      required: [event_type, request_id, status, timestamp]
+      properties:
+        event_type:
+          type: string
+          enum:
+            - REQUEST_CREATED
+            - REQUEST_WAITING
+            - REQUEST_ESCALATED
+            - REQUEST_ASSIGNED
+            - REQUEST_COMPLETED
+            - REQUEST_CANCELED
+            - REQUEST_REASSIGNED
+        request_id: { type: string, format: uuid }
+        store_id: { type: string, format: uuid }
+        department_id: { type: string, format: uuid }
+        department_name: { type: string }
+        status:
+          type: string
+          enum: [PENDING, WAITING, ESCALATED, ASSIGNED, COMPLETED, CANCELED]
+        assigned_user_id: { type: string, format: uuid }
+        assigned_user_name: { type: string }
+        client_session_token: { type: string, format: uuid }
+        timestamp: { type: integer, description: epoch millis }
+
+  parameters:
+    storeId:
+      description: UUID магазина (должен совпадать с `storeId` из JWT)
+      schema: { type: string, format: uuid }
+    departmentId:
+      description: UUID отдела (для CONSULTANT — должен быть в его делегированных компетенциях)
+      schema: { type: string, format: uuid }
+    clientSessionToken:
+      description: UUID сессионной метки заявки (выдаётся в ответе POST /api/v1/requests)
+      schema: { type: string, format: uuid }
+
+channels:
+  /topic/store/{storeId}/requests:
+    description: |
+      Все обновления заявок магазина. Подписчик — менеджер магазина.
+      SUBSCRIBE отклоняется, если роль ≠ MANAGER/ADMIN или `storeId` ≠ `storeId` из JWT.
+    parameters:
+      storeId:
+        $ref: '#/components/parameters/storeId'
+    bindings:
+      ws:
+        method: SUBSCRIBE
+    subscribe:
+      operationId: subscribeStoreRequests
+      summary: Подписка менеджера на все заявки своего магазина
+      message:
+        $ref: '#/components/messages/RequestUpdate'
+
+  /topic/department/{departmentId}/requests:
+    description: |
+      Обновления заявок конкретного отдела. Подписчик — консультант с делегированной компетенцией
+      на этот отдел; либо менеджер магазина. Консультант, работающий в нескольких отделах,
+      делает отдельный SUBSCRIBE на каждый.
+    parameters:
+      departmentId:
+        $ref: '#/components/parameters/departmentId'
+    bindings:
+      ws:
+        method: SUBSCRIBE
+    subscribe:
+      operationId: subscribeDepartmentRequests
+      summary: Подписка консультанта на заявки отдела (с проверкой компетенций)
+      message:
+        $ref: '#/components/messages/RequestUpdate'
+
+  /queue/request/{clientSessionToken}:
+    description: |
+      Статус конкретной заявки клиента. Подписчик — клиент после сканирования QR.
+      JWT не нужен, авторизация по знанию `clientSessionToken`.
+    parameters:
+      clientSessionToken:
+        $ref: '#/components/parameters/clientSessionToken'
+    bindings:
+      ws:
+        method: SUBSCRIBE
+    subscribe:
+      operationId: subscribeClientSession
+      summary: Подписка клиента на статус своей заявки
+      message:
+        $ref: '#/components/messages/RequestUpdate'

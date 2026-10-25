@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
@@ -19,7 +20,7 @@ import javax.crypto.SecretKey;
 import java.util.List;
 
 @Component
-@Order(Ordered.HIGHEST_PRECEDENCE)
+@Order(Ordered.HIGHEST_PRECEDENCE + 10)
 public class JwtValidationFilter implements WebFilter {
 
     private static final List<String> PUBLIC_PATHS = List.of(
@@ -40,8 +41,9 @@ public class JwtValidationFilter implements WebFilter {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         String path = exchange.getRequest().getPath().value();
+        HttpMethod method = exchange.getRequest().getMethod();
 
-        if (isPublicPath(path)) {
+        if (isPublicPath(path, method)) {
             return chain.filter(exchange);
         }
 
@@ -76,14 +78,18 @@ public class JwtValidationFilter implements WebFilter {
         }
     }
 
-    private boolean isPublicPath(String path) {
+    private boolean isPublicPath(String path, HttpMethod method) {
         for (String p : PUBLIC_PATHS) {
             if (path.startsWith(p)) return true;
         }
-        if (path.equals("/api/v1/requests")) return true;
+        // POST /api/v1/requests — публичный (клиент создаёт заявку по QR без авторизации).
+        // GET /api/v1/requests — список заявок для консультанта/менеджера, требует JWT.
+        if (path.equals("/api/v1/requests") && HttpMethod.POST.equals(method)) return true;
         if (path.startsWith("/api/v1/requests/")) {
             if (path.endsWith("/cancel") || path.endsWith("/remind") || path.endsWith("/reassign")) return true;
-            if (path.matches("/api/v1/requests/[^/]+$")) return true;
+            // GET /api/v1/requests/{id}?session=... — клиент смотрит свою заявку по токену сессии,
+            // публично только для GET. Назначение/завершение (POST) требуют JWT консультанта.
+            if (HttpMethod.GET.equals(method) && path.matches("/api/v1/requests/[^/]+$")) return true;
         }
         return false;
     }

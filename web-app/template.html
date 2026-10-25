@@ -1,0 +1,1645 @@
+<!DOCTYPE html>
+<html lang="ru"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>RetailHub — вызов консультанта</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <style>/* cyrillic-ext */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("8139241b-600e-443d-828f-705d0866cce9") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("c5830baf-a60d-4853-aa85-192ec31913f7") format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* greek-ext */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("1870e049-19b6-4a56-a23b-ad6f2dbd8335") format('woff2');
+  unicode-range: U+1F00-1FFF;
+}
+/* greek */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("66a37601-20e4-4b65-b2e1-5f4d4edbc7c5") format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("1baeeb99-1443-4e2a-8713-31168ff1614e") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("c22bfe63-0b97-4ddc-ad5e-a8128cfd0c89") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("46299646-538f-46a5-aadd-21b1d58d87f0") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("8139241b-600e-443d-828f-705d0866cce9") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("c5830baf-a60d-4853-aa85-192ec31913f7") format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* greek-ext */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("1870e049-19b6-4a56-a23b-ad6f2dbd8335") format('woff2');
+  unicode-range: U+1F00-1FFF;
+}
+/* greek */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("66a37601-20e4-4b65-b2e1-5f4d4edbc7c5") format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("1baeeb99-1443-4e2a-8713-31168ff1614e") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("c22bfe63-0b97-4ddc-ad5e-a8128cfd0c89") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("46299646-538f-46a5-aadd-21b1d58d87f0") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("8139241b-600e-443d-828f-705d0866cce9") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("c5830baf-a60d-4853-aa85-192ec31913f7") format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* greek-ext */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("1870e049-19b6-4a56-a23b-ad6f2dbd8335") format('woff2');
+  unicode-range: U+1F00-1FFF;
+}
+/* greek */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("66a37601-20e4-4b65-b2e1-5f4d4edbc7c5") format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("1baeeb99-1443-4e2a-8713-31168ff1614e") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("c22bfe63-0b97-4ddc-ad5e-a8128cfd0c89") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("46299646-538f-46a5-aadd-21b1d58d87f0") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'Inter Tight';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("31c06ed9-d970-41cc-a86c-ef326eaa9bf3") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'Inter Tight';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("f6638c02-0288-489d-be13-9e7671ba6648") format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* greek-ext */
+@font-face {
+  font-family: 'Inter Tight';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("471621c5-4a10-472e-a7d6-2b29f81dc77d") format('woff2');
+  unicode-range: U+1F00-1FFF;
+}
+/* greek */
+@font-face {
+  font-family: 'Inter Tight';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("5683dc49-bb58-42f4-8b87-ed601350f7a3") format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Inter Tight';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("85791903-cf15-4b5c-9477-8a75acd68ade") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Inter Tight';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("9a4bc6b1-0fa6-409d-8d53-d08882966f9c") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Inter Tight';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("c6089e05-e5a7-41b5-8db4-9ec6d74697dd") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'Inter Tight';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("31c06ed9-d970-41cc-a86c-ef326eaa9bf3") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'Inter Tight';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("f6638c02-0288-489d-be13-9e7671ba6648") format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* greek-ext */
+@font-face {
+  font-family: 'Inter Tight';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("471621c5-4a10-472e-a7d6-2b29f81dc77d") format('woff2');
+  unicode-range: U+1F00-1FFF;
+}
+/* greek */
+@font-face {
+  font-family: 'Inter Tight';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("5683dc49-bb58-42f4-8b87-ed601350f7a3") format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Inter Tight';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("85791903-cf15-4b5c-9477-8a75acd68ade") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Inter Tight';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("9a4bc6b1-0fa6-409d-8d53-d08882966f9c") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Inter Tight';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("c6089e05-e5a7-41b5-8db4-9ec6d74697dd") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'Inter Tight';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("31c06ed9-d970-41cc-a86c-ef326eaa9bf3") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'Inter Tight';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("f6638c02-0288-489d-be13-9e7671ba6648") format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* greek-ext */
+@font-face {
+  font-family: 'Inter Tight';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("471621c5-4a10-472e-a7d6-2b29f81dc77d") format('woff2');
+  unicode-range: U+1F00-1FFF;
+}
+/* greek */
+@font-face {
+  font-family: 'Inter Tight';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("5683dc49-bb58-42f4-8b87-ed601350f7a3") format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Inter Tight';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("85791903-cf15-4b5c-9477-8a75acd68ade") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Inter Tight';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("9a4bc6b1-0fa6-409d-8d53-d08882966f9c") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Inter Tight';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("c6089e05-e5a7-41b5-8db4-9ec6d74697dd") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+</style>
+    <script src="98909b30-d002-4654-9450-9e3b5c3fb621"></script>
+    <script src="d6dc9258-6e51-4a93-a662-ae365e71a078"></script>
+    <script src="ba7acd9a-81a3-42c6-91b7-59157465ac36"></script>
+    <style>
+        :root {
+            --bg:        oklch(0.985 0.003 90);
+            --surface:   #ffffff;
+            --ink:       oklch(0.22 0.01 270);
+            --ink-soft:  oklch(0.45 0.01 270);
+            --ink-mute:  oklch(0.62 0.008 270);
+            --line:      oklch(0.93 0.005 270);
+            --line-soft: oklch(0.96 0.004 270);
+            --accent:    oklch(0.55 0.14 265);
+            --accent-ink:oklch(0.35 0.14 265);
+            --accent-bg: oklch(0.97 0.02 265);
+            --ok:        oklch(0.62 0.12 150);
+            --ok-bg:     oklch(0.97 0.03 150);
+            --warn:      oklch(0.70 0.13 75);
+            --warn-bg:   oklch(0.97 0.04 75);
+            --danger:    oklch(0.58 0.18 25);
+            --danger-bg: oklch(0.97 0.03 25);
+            --radius-lg: 24px;
+            --radius-md: 16px;
+            --radius-sm: 12px;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: var(--ink);
+            background: var(--bg);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+            font-feature-settings: "cv11","ss01","ss03";
+        }
+
+        body {
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .display {
+            font-family: 'Inter Tight', 'Inter', sans-serif;
+            letter-spacing: -0.02em;
+        }
+
+        /* ---------- Top bar ---------- */
+        .topbar {
+            padding: 22px 24px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 560px;
+            width: 100%;
+            margin: 0 auto;
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Inter Tight', sans-serif;
+            font-weight: 600;
+            font-size: 16px;
+            letter-spacing: -0.01em;
+        }
+        .brand-dot {
+            width: 22px;
+            height: 22px;
+            border-radius: 7px;
+            background: var(--ink);
+            position: relative;
+            flex-shrink: 0;
+        }
+        .brand-dot::after {
+            content: "";
+            position: absolute;
+            inset: 6px;
+            border-radius: 3px;
+            background: var(--bg);
+        }
+        .topbar-help {
+            font-size: 13px;
+            color: var(--ink-mute);
+            text-decoration: none;
+        }
+        .topbar-help:hover { color: var(--ink); }
+
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            padding: 28px 20px 48px;
+            gap: 16px;
+            max-width: 560px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* ---------- Cards ---------- */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            width: 100%;
+        }
+        .card-pad-tight { padding: 20px 22px; }
+
+        .eyebrow {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--ink-mute);
+        }
+
+        h1.display {
+            font-size: 34px;
+            line-height: 1.1;
+            font-weight: 600;
+            margin-top: 12px;
+            text-wrap: balance;
+        }
+
+        .lede {
+            margin-top: 12px;
+            font-size: 16px;
+            line-height: 1.55;
+            color: var(--ink-soft);
+            text-wrap: pretty;
+        }
+
+        /* ---------- Pre-scan (scanned a QR) ---------- */
+        .zone {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 20px;
+            padding: 18px 20px;
+            background: var(--accent-bg);
+            border-radius: var(--radius-md);
+        }
+        .zone-label { font-size: 12px; color: var(--accent-ink); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+        .zone-name  { font-family: 'Inter Tight', sans-serif; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; color: var(--ink); }
+        .zone-store { font-size: 14px; color: var(--ink-soft); }
+
+        /* ---------- Buttons ---------- */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 22px;
+            border: 1px solid transparent;
+            border-radius: 14px;
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: -0.005em;
+            cursor: pointer;
+            transition: background .15s ease, border-color .15s ease, color .15s ease, transform .08s ease;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .btn:active { transform: translateY(1px); }
+        .btn:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+
+        .btn-primary {
+            background: var(--ink);
+            color: #fff;
+        }
+        .btn-primary:hover:not(:disabled) { background: oklch(0.15 0.01 270); }
+
+        .btn-block { width: 100%; padding: 16px 22px; font-size: 16px; }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--ink-soft);
+            border-color: var(--line);
+        }
+        .btn-ghost:hover:not(:disabled) { color: var(--ink); border-color: oklch(0.85 0.008 270); }
+
+        .btn-danger-ghost {
+            background: transparent;
+            color: var(--danger);
+            border-color: transparent;
+        }
+        .btn-danger-ghost:hover:not(:disabled) { background: var(--danger-bg); }
+
+        /* ---------- Manual entry ---------- */
+        .field {
+            display: flex;
+            gap: 8px;
+            margin-top: 14px;
+        }
+        input[type="text"] {
+            flex: 1;
+            min-width: 0;
+            padding: 14px 16px;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            color: var(--ink);
+            background: #fff;
+            outline: none;
+            transition: border-color .15s ease, box-shadow .15s ease;
+        }
+        input[type="text"]::placeholder { color: var(--ink-mute); }
+        input[type="text"]:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px oklch(0.55 0.14 265 / 0.12);
+        }
+
+        /* ---------- Track (live request) ---------- */
+        .status-card {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .status-head {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--ink-soft);
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: var(--warn);
+            position: relative;
+        }
+        .status-dot.pulse::after {
+            content: "";
+            position: absolute;
+            inset: -5px;
+            border-radius: 999px;
+            border: 2px solid var(--warn);
+            opacity: 0;
+            animation: pulse 1.8s ease-out infinite;
+        }
+        .status-dot.ok     { background: var(--ok); }
+        .status-dot.ok.pulse::after { border-color: var(--ok); }
+        .status-dot.accent { background: var(--accent); }
+        .status-dot.accent.pulse::after { border-color: var(--accent); }
+        .status-dot.mute   { background: var(--ink-mute); }
+        .status-dot.mute.pulse::after { border-color: var(--ink-mute); }
+        .status-dot.danger { background: var(--danger); }
+        .status-dot.danger.pulse::after { border-color: var(--danger); }
+
+        @keyframes pulse {
+            0%   { transform: scale(0.6); opacity: 0.9; }
+            100% { transform: scale(1.8); opacity: 0; }
+        }
+
+        .status-title {
+            font-family: 'Inter Tight', sans-serif;
+            font-size: 32px;
+            line-height: 1.12;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            margin-top: 18px;
+            text-wrap: balance;
+        }
+
+        .status-sub {
+            margin-top: 12px;
+            font-size: 15px;
+            line-height: 1.55;
+            color: var(--ink-soft);
+        }
+
+        .status-meta {
+            margin-top: 18px;
+            font-size: 13px;
+            color: var(--ink-mute);
+        }
+
+        /* consultant card */
+        .consultant {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-top: 22px;
+            padding: 16px;
+            background: var(--ok-bg);
+            border-radius: var(--radius-md);
+        }
+        .consultant-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 999px;
+            background: var(--surface);
+            border: 1px solid oklch(0.88 0.04 150);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Inter Tight', sans-serif;
+            font-weight: 600;
+            font-size: 16px;
+            color: oklch(0.35 0.1 150);
+            flex-shrink: 0;
+        }
+        .consultant-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+        .consultant-name { font-weight: 600; font-size: 15px; color: var(--ink); }
+        .consultant-role { font-size: 13px; color: var(--ink-soft); }
+
+        /* progress track */
+        .track {
+            margin-top: 26px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+        .track-step {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .track-bar {
+            height: 4px;
+            border-radius: 999px;
+            background: var(--line);
+        }
+        .track-step.done .track-bar { background: var(--ink); }
+        .track-step.active .track-bar {
+            background: linear-gradient(90deg, var(--ink) 0%, var(--ink) var(--pct, 40%), var(--line) var(--pct, 40%));
+        }
+        .track-label {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--ink-mute);
+            letter-spacing: 0.01em;
+        }
+        .track-step.done .track-label,
+        .track-step.active .track-label { color: var(--ink); }
+
+        .track.terminal-canceled .track-bar { background: oklch(0.88 0.02 25); }
+        .track.terminal-canceled .track-label { color: var(--ink-mute); }
+
+        /* actions row */
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 26px;
+            padding-top: 22px;
+            border-top: 1px solid var(--line-soft);
+        }
+        .actions-spacer { flex: 1; }
+
+        /* completion / cancel variants */
+        .done-check,
+        .done-x {
+            width: 52px;
+            height: 52px;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 22px;
+            margin-bottom: 8px;
+        }
+        .done-check {
+            background: var(--ok-bg);
+            color: var(--ok);
+        }
+        .done-x {
+            background: var(--danger-bg);
+            color: var(--danger);
+        }
+
+        /* ---------- Tiny helper strip (marketing) ---------- */
+        .helper {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 18px 20px;
+            background: transparent;
+            border: 1px dashed var(--line);
+            border-radius: var(--radius-md);
+            margin-top: 4px;
+        }
+        .helper-ico {
+            width: 34px; height: 34px;
+            flex-shrink: 0;
+            border-radius: 10px;
+            background: var(--accent-bg);
+            color: var(--accent-ink);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .helper-text { font-size: 13.5px; color: var(--ink-soft); line-height: 1.5; }
+        .helper-text strong { color: var(--ink); font-weight: 600; }
+
+        /* ---------- Global error toast-like ---------- */
+        .alert {
+            padding: 14px 16px;
+            background: var(--danger-bg);
+            color: var(--danger);
+            border: 1px solid oklch(0.88 0.05 25);
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .inline-error {
+            color: var(--danger);
+            font-size: 13px;
+            margin-top: 10px;
+        }
+
+        /* ---------- Footer ---------- */
+        footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 12px;
+            color: var(--ink-mute);
+        }
+
+        .hidden { display: none !important; }
+
+        /* ---------- Tweaks panel ---------- */
+        #tweaks {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 280px;
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            padding: 18px;
+            box-shadow: 0 14px 40px -12px oklch(0.3 0.02 270 / 0.25), 0 2px 6px oklch(0.3 0.02 270 / 0.08);
+            font-size: 13px;
+            z-index: 50;
+        }
+        #tweaks h4 {
+            font-family: 'Inter Tight', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            color: var(--ink);
+            margin-bottom: 4px;
+        }
+        #tweaks .tw-hint {
+            font-size: 11px;
+            color: var(--ink-mute);
+            margin-bottom: 14px;
+        }
+        #tweaks .tw-group { margin-bottom: 14px; }
+        #tweaks .tw-group:last-child { margin-bottom: 0; }
+        #tweaks .tw-label {
+            display: block;
+            font-size: 11px;
+            color: var(--ink-mute);
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+        #tweaks .tw-seg {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 3px;
+        }
+        #tweaks .tw-seg.two { grid-template-columns: 1fr 1fr; }
+        #tweaks .tw-seg button {
+            appearance: none;
+            border: none;
+            background: transparent;
+            color: var(--ink-soft);
+            padding: 7px 4px;
+            border-radius: 7px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+        }
+        #tweaks .tw-seg button[aria-pressed="true"] {
+            background: var(--ink);
+            color: #fff;
+        }
+
+        @media (max-width: 520px) {
+            #tweaks { left: 12px; right: 12px; bottom: 12px; width: auto; }
+        }
+
+        @media (min-width: 560px) {
+            main { padding-top: 36px; }
+            .card { padding: 32px; }
+            h1.display { font-size: 40px; }
+            .status-title { font-size: 38px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <div class="brand">
+            <span class="brand-dot" aria-hidden="true"></span>
+            <span>RetailHub</span>
+        </div>
+        <a href="#" class="topbar-help">Помощь</a>
+    </div>
+
+    <main>
+        <div id="globalError" class="alert hidden" role="alert"></div>
+
+        <!-- Intro (no QR scanned yet) -->
+        <section class="card" id="introSection">
+            <div class="eyebrow">Вызов консультанта</div>
+            <h1 class="display" id="introHeadline">Отсканируйте код в отделе — и консультант подойдёт к вам</h1>
+            <p class="lede" id="introLede">
+                Не нужно искать сотрудника. Наведите камеру телефона на QR‑код рядом с витриной —
+                ближайший консультант получит вызов и направится к вам.
+            </p>
+
+            <div class="helper" style="margin-top: 22px;">
+                <div class="helper-ico" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><path d="M14 14h3v3h-3zM20 14h1M14 20h3M20 17v4"></path></svg>
+                </div>
+                <div class="helper-text">
+                    <strong>QR‑коды</strong> расположены на стойках, витринах и в торговых зонах.
+                    Если код не сканируется, введите его номер вручную ниже.
+                </div>
+            </div>
+        </section>
+
+        <!-- Pre-scan (arrived via /scan/<token>) -->
+        <section class="card hidden" id="preScanSection">
+            <div class="eyebrow">Вы в торговом зале</div>
+            <h1 class="display">Позвать консультанта?</h1>
+
+            <div class="zone" id="zoneBox">
+                <span class="zone-label">Зона обслуживания</span>
+                <span class="zone-name" id="zoneName">Отдел</span>
+                <span class="zone-store" id="zoneStore"></span>
+            </div>
+
+            <p class="lede" id="preScanLede">
+                Нажмите кнопку, и ближайший свободный консультант отдела получит ваш вызов.
+                Ждать у стойки необязательно — статус вызова будет виден на этой странице.
+            </p>
+
+            <button type="button" id="btnCallConsultant" class="btn btn-primary btn-block" style="margin-top: 22px;" onclick="createRequest()">
+                Позвать консультанта
+            </button>
+
+            <div id="preScanError" class="inline-error hidden"></div>
+        </section>
+
+        <!-- Manual entry (fallback) -->
+        <section class="card card-pad-tight" id="scanSection">
+            <div class="eyebrow">Нет возможности отсканировать?</div>
+            <div style="margin-top: 8px; font-size: 15px; color: var(--ink-soft); line-height: 1.5;">
+                Введите номер зоны, указанный под QR‑кодом.
+            </div>
+            <div class="field">
+                <input type="text" id="qrTokenInput" placeholder="Код зоны" autocomplete="off" inputmode="text" spellcheck="false">
+                <button type="button" class="btn btn-primary" onclick="createRequest()">Вызвать</button>
+            </div>
+            <div id="errorMsg" class="inline-error hidden"></div>
+        </section>
+
+        <!-- Live request -->
+        <section class="card status-card hidden" id="trackSection" aria-live="polite">
+            <!-- Status pill -->
+            <div class="status-head">
+                <span id="statusDot" class="status-dot accent pulse"></span>
+                <span id="statusEyebrow">Ваш вызов</span>
+            </div>
+
+            <!-- Completed icon -->
+            <div id="completedIcon" class="done-check hidden" aria-hidden="true">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+            <div id="canceledIcon" class="done-x hidden" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </div>
+
+            <h2 class="status-title" id="requestHeadline">Ищем свободного консультанта</h2>
+            <p class="status-sub" id="requestSubline"></p>
+
+            <!-- Consultant block (ASSIGNED) -->
+            <div id="consultantBlock" class="consultant hidden">
+                <div class="consultant-avatar" id="consultantAvatar">—</div>
+                <div class="consultant-info">
+                    <span class="consultant-name" id="consultantName">Консультант</span>
+                    <span class="consultant-role">Направляется к вам</span>
+                </div>
+            </div>
+
+            <!-- Progress track -->
+            <div class="track" id="progressTrack" aria-hidden="true">
+                <div class="track-step" data-step="1"><div class="track-bar"></div><div class="track-label">Принята</div></div>
+                <div class="track-step" data-step="2"><div class="track-bar"></div><div class="track-label">Поиск</div></div>
+                <div class="track-step" data-step="3"><div class="track-bar"></div><div class="track-label">Назначен</div></div>
+                <div class="track-step" data-step="4"><div class="track-bar"></div><div class="track-label">Встреча</div></div>
+            </div>
+
+            <div class="status-meta" id="requestMeta"></div>
+
+            <div class="actions" id="requestActions"></div>
+        </section>
+    </main>
+
+    <footer>RetailHub · 2026</footer>
+
+    <!-- Tweaks panel (design demo) -->
+    <aside id="tweaks" class="hidden" aria-label="Tweaks">
+        <h4>Tweaks</h4>
+        <div class="tw-hint">Демо-режим: покажите клиентский экран в разных состояниях.</div>
+
+        <div class="tw-group">
+            <span class="tw-label">Сценарий</span>
+            <div class="tw-seg two" data-tw="scenario">
+                <button data-val="intro">Без QR</button>
+                <button data-val="scan" aria-pressed="true">Пришли по QR</button>
+            </div>
+        </div>
+
+        <div class="tw-group">
+            <span class="tw-label">Статус заявки</span>
+            <div class="tw-seg" data-tw="status">
+                <button data-val="none" aria-pressed="true">Нет</button>
+                <button data-val="WAITING">Поиск</button>
+                <button data-val="ESCALATED">Эскалация</button>
+                <button data-val="ASSIGNED">Назначен</button>
+                <button data-val="COMPLETED">Завершено</button>
+                <button data-val="CANCELED">Отменено</button>
+            </div>
+        </div>
+    </aside>
+
+    <script>
+        /** ===== RetailHub client — UI refresh =====
+         *  API-контракт и WebSocket оставлены без изменений.
+         *  snake_case поля, /api/v1/requests, /ws SockJS+STOMP — всё как было. */
+        let stompClient = null;
+        let subscription = null;
+        let currentRequest = null;
+        let pendingQrToken = null;
+        let scanMeta = { department_name: null, store_name: null };
+
+        /* ---------- utilities ---------- */
+        function escapeHtml(s) {
+            if (s == null || s === '') return '';
+            return String(s)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function showClientError(msg) {
+            const g = document.getElementById('globalError');
+            g.textContent = msg;
+            g.classList.remove('hidden');
+            const pre = document.getElementById('preScanError');
+            pre.textContent = msg;
+            pre.classList.remove('hidden');
+            const em = document.getElementById('errorMsg');
+            em.textContent = msg;
+            em.classList.remove('hidden');
+        }
+        function clearClientError() {
+            const g = document.getElementById('globalError');
+            g.classList.add('hidden');
+            g.textContent = '';
+        }
+        function showScanError(msg) {
+            showClientError(msg);
+            setTimeout(() => {
+                document.getElementById('errorMsg').classList.add('hidden');
+                document.getElementById('preScanError').classList.add('hidden');
+                document.getElementById('globalError').classList.add('hidden');
+            }, 12000);
+        }
+        function showPreScanError(msg) { showClientError(msg); }
+
+        function formatTime(iso) {
+            if (!iso) return '';
+            const d = new Date(iso);
+            if (Number.isNaN(d.getTime())) return '';
+            return d.toLocaleString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function initials(name) {
+            if (!name) return '—';
+            const parts = String(name).trim().split(/\s+/).slice(0, 2);
+            return parts.map(p => p[0]).join('').toUpperCase() || '—';
+        }
+
+        /* ---------- status rendering ---------- */
+        function statusHeadline(req) {
+            const st = req.status;
+            const name = req.consultant_name;
+            switch (st) {
+                case 'CREATED':
+                case 'WAITING':
+                    return 'Ищем свободного консультанта';
+                case 'ESCALATED':
+                    return 'Подключаем руководителя отдела';
+                case 'ASSIGNED':
+                    return name ? ('К вам идёт ' + escapeHtml(name)) : 'Консультант направляется к вам';
+                case 'COMPLETED':
+                    return 'Спасибо! Вызов завершён';
+                case 'CANCELED':
+                    return 'Вызов отменён';
+                default:
+                    return 'Обрабатываем вызов';
+            }
+        }
+
+        function statusSubline(req) {
+            const st = req.status;
+            const dept = req.department_name || scanMeta.department_name;
+            const store = scanMeta.store_name;
+
+            const zone = [];
+            if (dept) zone.push(escapeHtml(dept));
+            if (store) zone.push(escapeHtml(store));
+            const zoneStr = zone.join(' · ');
+
+            switch (st) {
+                case 'CREATED':
+                case 'WAITING':
+                    return zoneStr
+                        ? ('Заявка передана в отдел <strong>' + escapeHtml(dept || '') + '</strong>. Оставайтесь рядом — консультант подойдёт в ближайшие минуты.')
+                        : 'Заявка передана в отдел. Оставайтесь рядом — консультант подойдёт в ближайшие минуты.';
+                case 'ESCALATED':
+                    return 'Консультанты заняты, поэтому мы уведомили руководителя торгового зала. Он подойдёт сам или направит коллегу.';
+                case 'ASSIGNED':
+                    return 'Пожалуйста, оставайтесь на месте — сотрудник уже идёт к вам.';
+                case 'COMPLETED':
+                    return 'Надеемся, мы вам помогли. Хорошей покупки!';
+                case 'CANCELED':
+                    return 'Если понадобится помощь — отсканируйте QR-код ещё раз.';
+                default:
+                    return zoneStr;
+            }
+        }
+
+        function statusDotState(st) {
+            switch (st) {
+                case 'ASSIGNED':  return { cls: 'status-dot ok pulse',     text: 'Консультант назначен' };
+                case 'COMPLETED': return { cls: 'status-dot ok',            text: 'Вызов завершён' };
+                case 'CANCELED':  return { cls: 'status-dot danger',        text: 'Вызов отменён' };
+                case 'ESCALATED': return { cls: 'status-dot accent pulse',  text: 'Эскалация руководителю' };
+                case 'CREATED':
+                case 'WAITING':
+                default:          return { cls: 'status-dot pulse',         text: 'Ищем консультанта' };
+            }
+        }
+
+        function progressForStatus(st) {
+            // returns array of step states: 'done' | 'active' | ''
+            switch (st) {
+                case 'CREATED':   return ['done','active','',''];
+                case 'WAITING':
+                case 'ESCALATED': return ['done','active','',''];
+                case 'ASSIGNED':  return ['done','done','active',''];
+                case 'COMPLETED': return ['done','done','done','done'];
+                case 'CANCELED':  return ['','','',''];
+                default:          return ['done','active','',''];
+            }
+        }
+
+        function renderRequest() {
+            if (!currentRequest) return;
+
+            const st = currentRequest.status;
+
+            // headline + sub
+            document.getElementById('requestHeadline').innerHTML = statusHeadline(currentRequest);
+            document.getElementById('requestSubline').innerHTML = statusSubline(currentRequest);
+
+            // status pill
+            const sd = statusDotState(st);
+            const dot = document.getElementById('statusDot');
+            dot.className = sd.cls;
+            document.getElementById('statusEyebrow').textContent = sd.text;
+
+            // completion / cancel marks
+            document.getElementById('completedIcon').classList.toggle('hidden', st !== 'COMPLETED');
+            document.getElementById('canceledIcon').classList.toggle('hidden', st !== 'CANCELED');
+
+            // consultant card
+            const cb = document.getElementById('consultantBlock');
+            if (st === 'ASSIGNED' && currentRequest.consultant_name) {
+                cb.classList.remove('hidden');
+                document.getElementById('consultantAvatar').textContent = initials(currentRequest.consultant_name);
+                document.getElementById('consultantName').textContent = currentRequest.consultant_name;
+            } else {
+                cb.classList.add('hidden');
+            }
+
+            // meta (time)
+            const created = formatTime(currentRequest.created_at);
+            document.getElementById('requestMeta').textContent = created
+                ? ('Вызов отправлен в ' + created)
+                : '';
+
+            // progress track
+            const track = document.getElementById('progressTrack');
+            track.classList.toggle('terminal-canceled', st === 'CANCELED');
+            const states = progressForStatus(st);
+            track.querySelectorAll('.track-step').forEach((el, i) => {
+                el.classList.remove('done','active');
+                if (states[i]) el.classList.add(states[i]);
+            });
+
+            // actions
+            const actions = document.getElementById('requestActions');
+            actions.innerHTML = '';
+
+            if (st !== 'COMPLETED' && st !== 'CANCELED') {
+                if (currentRequest.can_remind === true) {
+                    actions.innerHTML += '<button type="button" class="btn btn-ghost" onclick="remindRequest()">Напомнить</button>';
+                }
+                if (currentRequest.can_reassign === true) {
+                    actions.innerHTML += '<button type="button" class="btn btn-ghost" onclick="reassignRequest()">Позвать другого</button>';
+                }
+                actions.innerHTML += '<span class="actions-spacer"></span>';
+                actions.innerHTML += '<button type="button" class="btn btn-danger-ghost" onclick="cancelRequest()">Отменить</button>';
+            } else if (st === 'CANCELED') {
+                actions.innerHTML += '<button type="button" class="btn btn-primary" onclick="retryRequest()">Вызвать снова</button>';
+                actions.innerHTML += '<button type="button" class="btn btn-ghost" onclick="resetToStart()">Закрыть</button>';
+            } else {
+                actions.innerHTML += '<button type="button" class="btn btn-ghost" onclick="resetToStart()">Закрыть</button>';
+            }
+        }
+
+        function retryRequest() {
+            // В tweaks-режиме просто сбрасываем статус, иначе создаём новую заявку
+            if (tweaksOn) {
+                tweakState.status = 'WAITING';
+                renderTweakButtons();
+                applyTweaks();
+                return;
+            }
+            try { sessionStorage.removeItem('rh_client_req'); } catch (e) { /* ignore */ }
+            if (stompClient) { try { stompClient.deactivate(); } catch (e) { /* ignore */ } }
+            const prevToken = (currentRequest && currentRequest.department_name) ? pendingQrToken : pendingQrToken;
+            currentRequest = null;
+            document.getElementById('trackSection').classList.add('hidden');
+            // Повторно отправляем, если остался исходный QR-токен
+            if (prevToken || (document.getElementById('qrTokenInput').value || '').trim()) {
+                createRequest();
+            } else {
+                resetToStart();
+            }
+        }
+
+        function resetToStart() {
+            try { sessionStorage.removeItem('rh_client_req'); } catch (e) { /* ignore */ }
+            if (stompClient) { try { stompClient.deactivate(); } catch (e) { /* ignore */ } }
+            currentRequest = null;
+            document.getElementById('trackSection').classList.add('hidden');
+            if (pendingQrToken) {
+                document.getElementById('preScanSection').classList.remove('hidden');
+            } else {
+                document.getElementById('introSection').classList.remove('hidden');
+                document.getElementById('scanSection').classList.remove('hidden');
+            }
+        }
+
+        /* ---------- request creation ---------- */
+        function qrTokenForRequest() {
+            const input = document.getElementById('qrTokenInput');
+            const fromInput = (input && input.value) ? input.value.trim() : '';
+            const fromPending = pendingQrToken ? String(pendingQrToken).trim() : '';
+            return fromPending || fromInput;
+        }
+
+        async function createRequest() {
+            clearClientError();
+            const token = qrTokenForRequest();
+            if (!token) {
+                showScanError('Введите код зоны или откройте страницу по ссылке из QR&#8209;кода.');
+                return;
+            }
+
+            const btnCall = document.getElementById('btnCallConsultant');
+            const btnManual = document.querySelector('#scanSection .btn-primary');
+            const busy = (b) => {
+                if (btnCall) { btnCall.disabled = b; btnCall.textContent = b ? 'Отправляем…' : 'Позвать консультанта'; }
+                if (btnManual && btnManual !== btnCall) { btnManual.disabled = b; btnManual.textContent = b ? '…' : 'Вызвать'; }
+            };
+            busy(true);
+
+            try {
+                const res = await fetch('/api/v1/requests', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify({ qr_token: token })
+                });
+
+                const rawText = await res.text();
+                if (!res.ok) {
+                    showScanError('Не удалось отправить вызов. Попробуйте ещё раз.');
+                    busy(false);
+                    return;
+                }
+
+                let data;
+                try { data = JSON.parse(rawText); }
+                catch (pe) { showScanError('Не удалось обработать ответ. Попробуйте ещё раз.'); busy(false); return; }
+
+                if (!data.client_session_token || !data.id) {
+                    showScanError('Не удалось создать заявку. Обратитесь к сотруднику магазина.');
+                    busy(false);
+                    return;
+                }
+
+                currentRequest = data;
+                pendingQrToken = null;
+
+                document.getElementById('introSection').classList.add('hidden');
+                document.getElementById('preScanSection').classList.add('hidden');
+                document.getElementById('scanSection').classList.add('hidden');
+                document.getElementById('trackSection').classList.remove('hidden');
+
+                try {
+                    sessionStorage.setItem('rh_client_req', JSON.stringify({
+                        id: currentRequest.id,
+                        client_session_token: currentRequest.client_session_token
+                    }));
+                } catch (e) { /* ignore */ }
+
+                renderRequest();
+                connectWebSocket();
+                busy(false);
+            } catch (e) {
+                showScanError('Нет связи. Проверьте интернет и попробуйте снова.');
+                busy(false);
+            }
+        }
+
+        /* ---------- WebSocket ---------- */
+        function normalizeWsPayload(raw) {
+            return {
+                event_type: raw.event_type ?? raw.eventType,
+                status: raw.status,
+                assigned_user_name: raw.assigned_user_name ?? raw.assignedUserName
+            };
+        }
+
+        function stompClientClass() {
+            try {
+                var g = typeof globalThis !== 'undefined' ? globalThis : window;
+                if (g.StompJs && typeof g.StompJs.Client === 'function') return g.StompJs.Client;
+            } catch (e) { /* ignore */ }
+            return null;
+        }
+
+        function connectWebSocket() {
+            if (!currentRequest || !currentRequest.client_session_token) return;
+            var ClientCtor = stompClientClass();
+            if (!ClientCtor) return;
+            if (typeof SockJS === 'undefined') return;
+
+            const sockUrl = window.location.origin + '/ws';
+            if (stompClient) { try { stompClient.deactivate(); } catch (e) { /* ignore */ } }
+
+            stompClient = new ClientCtor({
+                webSocketFactory: () => new SockJS(sockUrl),
+                reconnectDelay: 5000,
+                onConnect: () => {
+                    const session = currentRequest.client_session_token;
+                    subscription = stompClient.subscribe(
+                        '/queue/request/' + session,
+                        (message) => {
+                            try {
+                                const raw = JSON.parse(message.body);
+                                const ev = normalizeWsPayload(raw);
+                                if (ev.status) currentRequest.status = ev.status;
+                                if (ev.assigned_user_name) currentRequest.consultant_name = ev.assigned_user_name;
+                                renderRequest();
+                            } catch (e) {
+                                console.error('WS parse error:', e);
+                            }
+                        }
+                    );
+                }
+            });
+
+            try { stompClient.activate(); }
+            catch (e) { console.warn('WS activate:', e); }
+        }
+
+        function sessionQuery() {
+            if (!currentRequest || !currentRequest.client_session_token) return '';
+            return encodeURIComponent(currentRequest.client_session_token);
+        }
+
+        async function cancelRequest() {
+            if (!currentRequest || !currentRequest.id || !currentRequest.client_session_token) return;
+            try {
+                const res = await fetch(
+                    '/api/v1/requests/' + currentRequest.id + '/cancel?session=' + sessionQuery(),
+                    { method: 'POST' }
+                );
+                if (res.ok) {
+                    currentRequest.status = 'CANCELED';
+                    renderRequest();
+                } else {
+                    const text = await res.text();
+                    alert('Не удалось отменить: ' + (text || res.status));
+                }
+            } catch (e) { alert('Нет связи: ' + e.message); }
+        }
+
+        async function remindRequest() {
+            if (!currentRequest || !currentRequest.id || !currentRequest.client_session_token) return;
+            try {
+                const res = await fetch(
+                    '/api/v1/requests/' + currentRequest.id + '/remind?session=' + sessionQuery(),
+                    { method: 'POST' }
+                );
+                if (!res.ok) {
+                    const text = await res.text();
+                    alert('Не удалось напомнить: ' + (text || res.status));
+                }
+            } catch (e) { alert('Нет связи: ' + e.message); }
+        }
+
+        async function reassignRequest() {
+            if (!currentRequest || !currentRequest.id || !currentRequest.client_session_token) return;
+            const reason = prompt('Почему нужен другой консультант? (необязательно)');
+            try {
+                let url = '/api/v1/requests/' + currentRequest.id + '/reassign?session=' + sessionQuery();
+                if (reason) url += '&reason=' + encodeURIComponent(reason);
+                const res = await fetch(url, { method: 'POST' });
+                if (res.ok) {
+                    currentRequest = await res.json();
+                    renderRequest();
+                } else {
+                    const text = await res.text();
+                    alert('Не удалось сменить консультанта: ' + (text || res.status));
+                }
+            } catch (e) { alert('Нет связи: ' + e.message); }
+        }
+
+        async function pollRequestStatus() {
+            if (!currentRequest || !currentRequest.id || !currentRequest.client_session_token) return;
+            if (currentRequest.status === 'COMPLETED' || currentRequest.status === 'CANCELED') return;
+            try {
+                const res = await fetch('/api/v1/requests/' + currentRequest.id + '?session=' + sessionQuery());
+                if (res.ok) {
+                    currentRequest = await res.json();
+                    renderRequest();
+                }
+            } catch (e) { /* ignore */ }
+        }
+        setInterval(pollRequestStatus, 10000);
+
+        /* ---------- restore an in-progress request after page reload ---------- */
+        async function restoreSession() {
+            let saved = null;
+            try {
+                const raw = sessionStorage.getItem('rh_client_req');
+                if (raw) saved = JSON.parse(raw);
+            } catch (e) { /* ignore */ }
+            if (!saved || !saved.id || !saved.client_session_token) return false;
+
+            // временно кладём токен, чтобы sessionQuery() отработал в запросе
+            currentRequest = { id: saved.id, client_session_token: saved.client_session_token };
+            try {
+                const res = await fetch('/api/v1/requests/' + saved.id + '?session=' + sessionQuery());
+                if (res.status === 403 || res.status === 404) {
+                    // заявка чужая или удалена — чистим протухший токен
+                    sessionStorage.removeItem('rh_client_req');
+                    currentRequest = null;
+                    return false;
+                }
+                if (!res.ok) { currentRequest = null; return false; } // временная ошибка — токен оставляем
+                currentRequest = await res.json();
+            } catch (e) {
+                currentRequest = null;     // нет связи — sessionStorage не трогаем, попробуем позже
+                return false;
+            }
+
+            // завершённые/отменённые заявки не восстанавливаем
+            if (currentRequest.status === 'COMPLETED' || currentRequest.status === 'CANCELED') {
+                sessionStorage.removeItem('rh_client_req');
+                currentRequest = null;
+                return false;
+            }
+
+            document.getElementById('introSection').classList.add('hidden');
+            document.getElementById('preScanSection').classList.add('hidden');
+            document.getElementById('scanSection').classList.add('hidden');
+            document.getElementById('trackSection').classList.remove('hidden');
+
+            renderRequest();
+            connectWebSocket();
+            return true;
+        }
+
+        /* ---------- entry via /scan/<uuid> ---------- */
+        async function initFromScanPath() {
+            const m = window.location.pathname.match(
+                /^\/scan\/([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})\/?$/
+            );
+            if (!m) return;
+
+            pendingQrToken = m[1];
+            document.getElementById('qrTokenInput').value = pendingQrToken;
+            document.getElementById('introSection').classList.add('hidden');
+            document.getElementById('scanSection').classList.add('hidden');
+
+            try {
+                const r = await fetch('/api/v1/qr-codes/scan/' + pendingQrToken);
+                if (!r.ok) {
+                    showPreScanError('Этот код не распознан. Попросите помощи у сотрудника магазина.');
+                    document.getElementById('preScanSection').classList.remove('hidden');
+                    return;
+                }
+                const j = await r.json();
+                if (j.is_valid === false) {
+                    showPreScanError('Код больше не активен. Обратитесь к сотруднику магазина.');
+                    document.getElementById('preScanSection').classList.remove('hidden');
+                    return;
+                }
+                scanMeta = { department_name: j.department_name, store_name: j.store_name };
+                document.getElementById('zoneName').textContent  = j.department_name || 'Торговый зал';
+                document.getElementById('zoneStore').textContent = j.store_name || '';
+                document.getElementById('preScanSection').classList.remove('hidden');
+                document.getElementById('preScanError').classList.add('hidden');
+                document.getElementById('preScanError').textContent = '';
+                clearClientError();
+            } catch (e) {
+                showPreScanError('Не удалось проверить код. Проверьте интернет и попробуйте снова.');
+                document.getElementById('preScanSection').classList.remove('hidden');
+            }
+        }
+
+        (async () => {
+            const restored = await restoreSession();
+            if (!restored) initFromScanPath();
+        })();
+
+        /* =========================================================
+         *                        TWEAKS
+         * ========================================================= */
+        const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+          "scenario": "intro",
+          "status": "none"
+        }/*EDITMODE-END*/;
+
+        let tweaksOn = false;
+        let tweakState = Object.assign({}, TWEAK_DEFAULTS);
+
+        function applyTweaks() {
+            if (!tweaksOn) return;
+            // scenario
+            if (tweakState.scenario === 'intro') {
+                pendingQrToken = null;
+                scanMeta = { department_name: null, store_name: null };
+                document.getElementById('introSection').classList.remove('hidden');
+                document.getElementById('scanSection').classList.remove('hidden');
+                document.getElementById('preScanSection').classList.add('hidden');
+            } else {
+                pendingQrToken = '55555555-5555-5555-5555-555555555555';
+                scanMeta = { department_name: 'Бытовая техника', store_name: 'ТЦ Авиапарк, Москва' };
+                document.getElementById('zoneName').textContent  = scanMeta.department_name;
+                document.getElementById('zoneStore').textContent = scanMeta.store_name;
+                document.getElementById('introSection').classList.add('hidden');
+                document.getElementById('scanSection').classList.add('hidden');
+                document.getElementById('preScanSection').classList.remove('hidden');
+            }
+
+            // status
+            if (tweakState.status === 'none') {
+                document.getElementById('trackSection').classList.add('hidden');
+                currentRequest = null;
+                return;
+            }
+
+            currentRequest = {
+                id: 'demo-1',
+                client_session_token: 'demo',
+                status: tweakState.status,
+                department_name: 'Бытовая техника',
+                consultant_name: (tweakState.status === 'ASSIGNED') ? 'Анна Петрова' : null,
+                created_at: new Date(Date.now() - 3*60*1000).toISOString(),
+                can_remind: (tweakState.status === 'WAITING' || tweakState.status === 'ESCALATED'),
+                can_reassign: (tweakState.status === 'ASSIGNED')
+            };
+
+            // hide intro/prescan/scan, show track
+            document.getElementById('introSection').classList.add('hidden');
+            document.getElementById('preScanSection').classList.add('hidden');
+            document.getElementById('scanSection').classList.add('hidden');
+            document.getElementById('trackSection').classList.remove('hidden');
+
+            renderRequest();
+        }
+
+        function renderTweakButtons() {
+            document.querySelectorAll('#tweaks .tw-seg').forEach(seg => {
+                const key = seg.getAttribute('data-tw');
+                seg.querySelectorAll('button').forEach(btn => {
+                    btn.setAttribute('aria-pressed', btn.getAttribute('data-val') === String(tweakState[key]) ? 'true' : 'false');
+                });
+            });
+        }
+
+        document.querySelectorAll('#tweaks .tw-seg button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const seg = btn.closest('.tw-seg');
+                const key = seg.getAttribute('data-tw');
+                tweakState[key] = btn.getAttribute('data-val');
+                renderTweakButtons();
+                applyTweaks();
+                try {
+                    window.parent.postMessage({
+                        type: '__edit_mode_set_keys',
+                        edits: { [key]: tweakState[key] }
+                    }, '*');
+                } catch (e) { /* ignore */ }
+            });
+        });
+
+        window.addEventListener('message', (e) => {
+            const d = e.data || {};
+            if (d.type === '__activate_edit_mode') {
+                tweaksOn = true;
+                document.getElementById('tweaks').classList.remove('hidden');
+                renderTweakButtons();
+                applyTweaks();
+            } else if (d.type === '__deactivate_edit_mode') {
+                tweaksOn = false;
+                document.getElementById('tweaks').classList.add('hidden');
+                // Return to real entry state
+                document.getElementById('trackSection').classList.add('hidden');
+                currentRequest = null;
+                if (!window.location.pathname.match(/^\/scan\//)) {
+                    document.getElementById('introSection').classList.remove('hidden');
+                    document.getElementById('scanSection').classList.remove('hidden');
+                    document.getElementById('preScanSection').classList.add('hidden');
+                }
+            }
+        });
+
+        try { window.parent.postMessage({ type: '__edit_mode_available' }, '*'); } catch (e) { /* ignore */ }
+    </script>
+
+
+</body></html>

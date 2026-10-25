@@ -4,8 +4,27 @@ server:
 spring:
   application:
     name: api-gateway
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      timeout: 500ms
 
 gateway:
+  rate-limit:
+    enabled: ${RATE_LIMIT_ENABLED:true}
+    # предельная "вместимость" корзины (burst)
+    capacity: ${RATE_LIMIT_CAPACITY:20}
+    # скорость долива токенов, шт/сек (устойчивый лимит)
+    refill-per-second: ${RATE_LIMIT_REFILL:10}
+    # пути, которые не ограничиваем (health/metrics/docs)
+    exclude-paths:
+      - /actuator
+      - /swagger-ui
+      - /v3/api-docs
+      - /webjars
+
+
   # При вынесении notification/analytics на другой хост задайте GATEWAY_* в окружении api-gateway
   ws-target: ${GATEWAY_WS_TARGET:ws://notification-service:8085}
   routes:

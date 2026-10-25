@@ -39,6 +39,16 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
 
+fcm:
+  # Путь до service-account JSON из Firebase Console.
+  # Поддерживаются префиксы Spring: file:/... или classpath:...
+  # Если свойство пустое — FCM отключён и push-и только логируются (dev-режим).
+  credentials-location: ${FCM_CREDENTIALS_LOCATION:}
+
+app:
+  jwt:
+    secret: ${APP_JWT_SECRET:beAxeaveJiJRK6CIwR_bp-DxQAH9BBRWkv5HfhZOVHVU4JWGA6MFSndFPFd_lE7keRxVpNcuKfopDNeBMfJRBQ}
+
 logging:
   level:
     ru.retailhub.notification: DEBUG

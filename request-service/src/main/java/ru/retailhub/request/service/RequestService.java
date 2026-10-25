@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -43,8 +44,8 @@ public class RequestService {
 
     @Transactional(readOnly = true)
     public Page<Request> getRequests(UUID storeId, RequestStatus status, UUID departmentId,
-                                     LocalDate dateFrom, LocalDate dateTo,
-                                     int page, int size) {
+            LocalDate dateFrom, LocalDate dateTo,
+            int page, int size) {
 
         Specification<Request> spec = Specification.where((root, query, cb) -> cb.conjunction());
 
@@ -66,7 +67,7 @@ public class RequestService {
             spec = spec.and((root, query, cb) -> cb.lessThanOrEqualTo(root.get("createdAt"), to));
         }
 
-        return requestRepository.findAll(spec, PageRequest.of(page, size));
+        return requestRepository.findAll(spec, PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt")));
     }
 
     @Transactional(readOnly = true)
@@ -76,7 +77,8 @@ public class RequestService {
 
     @Transactional(readOnly = true)
     public String findDepartmentName(UUID departmentId) {
-        if (departmentId == null) return null;
+        if (departmentId == null)
+            return null;
         return qrCodeRepository.findAllByDepartmentId(departmentId).stream()
                 .map(ReplicaQrCode::getDepartmentName)
                 .filter(n -> n != null && !n.isEmpty())
@@ -134,8 +136,7 @@ public class RequestService {
             throw new RequestValidationException(
                     HttpStatus.PRECONDITION_FAILED,
                     "CONSULTANT_SHIFT_NOT_STARTED",
-                    "Нельзя назначить заявку: консультант не на смене (OFFLINE)"
-            );
+                    "Нельзя назначить заявку: консультант не на смене (OFFLINE)");
         }
         if ("BUSY".equals(consultant.getCurrentStatus())) {
             throw new RuntimeException("Нельзя назначить заявку: консультант уже занят (BUSY)");
@@ -272,7 +273,7 @@ public class RequestService {
     }
 
     private void writeOutboxEvent(Request request, String type, String reason,
-                                  UUID previousAssignedUserId) {
+            UUID previousAssignedUserId) {
         RequestEvent event = RequestEvent.builder()
                 .eventId(UUID.randomUUID())
                 .eventType(type)
@@ -295,8 +296,8 @@ public class RequestService {
 
         if (request.getAssignedUserId() != null) {
             event.setAssignedUserId(request.getAssignedUserId());
-            userRepository.findById(request.getAssignedUserId()).ifPresent(u ->
-                    event.setAssignedUserName(u.getFirstName() + " " + u.getLastName()));
+            userRepository.findById(request.getAssignedUserId())
+                    .ifPresent(u -> event.setAssignedUserName(u.getFirstName() + " " + u.getLastName()));
         }
 
         OutboxEvent outbox = new OutboxEvent();

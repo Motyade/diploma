@@ -10,9 +10,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import ru.retailhub.events.RequestEvent;
 import ru.retailhub.request.entity.OutboxEvent;
+import ru.retailhub.request.entity.ReplicaQrCode;
 import ru.retailhub.request.entity.Request;
 import ru.retailhub.request.entity.RequestStatus;
 import ru.retailhub.request.repository.OutboxEventRepository;
+import ru.retailhub.request.repository.ReplicaQrCodeRepository;
 import ru.retailhub.request.repository.RequestRepository;
 
 import java.time.OffsetDateTime;
@@ -31,6 +33,7 @@ public class SlaWorker {
     private final OutboxEventRepository outboxEventRepository;
     private final SlaDelayService slaDelayService;
     private final ObjectMapper objectMapper;
+    private final ReplicaQrCodeRepository qrCodeRepository;
 
     @Scheduled(fixedDelay = 1000)
     public void processDueTimers() {
@@ -120,7 +123,16 @@ public class SlaWorker {
                 .departmentId(request.getDepartmentId())
                 .status(request.getStatus().name())
                 .clientSessionToken(request.getClientSessionToken())
+                .reason(RequestEvent.TYPE_ESCALATED.equals(type)
+                        ? "превышено время ожидания SLA (>5 мин)"
+                        : null)
                 .build();
+
+        if (request.getQrCodeId() != null) {
+            qrCodeRepository.findById(request.getQrCodeId())
+                    .map(ReplicaQrCode::getDepartmentName)
+                    .ifPresent(event::setDepartmentName);
+        }
 
         OutboxEvent outbox = new OutboxEvent();
         outbox.setAggregateType("Request");

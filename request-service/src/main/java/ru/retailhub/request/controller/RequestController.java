@@ -128,6 +128,7 @@ public class RequestController {
     public record CreateRequestBody(@NotNull @JsonProperty("qr_token") UUID qrToken) {}
 
     public record AssignedConsultant(
+            UUID id,
             @JsonProperty("first_name") String firstName,
             @JsonProperty("last_name") String lastName
     ) {}
@@ -171,7 +172,7 @@ public class RequestController {
         if (request.getAssignedUserId() != null) {
             ReplicaUser user = requestService.findReplicaUser(request.getAssignedUserId()).orElse(null);
             if (user != null) {
-                assignedConsultant = new AssignedConsultant(user.getFirstName(), user.getLastName());
+                assignedConsultant = new AssignedConsultant(user.getId(), user.getFirstName(), user.getLastName());
             }
         }
         String departmentName = requestService.findDepartmentName(request.getDepartmentId());

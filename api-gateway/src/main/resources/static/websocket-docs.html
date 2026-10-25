@@ -11,24 +11,29 @@
         .topbar a { color: #89bf04; text-decoration: none; font-size: 14px; }
         .container { max-width: 960px; margin: 24px auto; padding: 0 16px; }
         .card { background: #fff; border-radius: 8px; border: 1px solid #e0e0e0; margin-bottom: 16px; overflow: hidden; }
-        .card-header { padding: 16px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .card-header { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
         .card-header h3 { font-size: 16px; }
         .card-body { padding: 0 20px 20px; }
         .channel { border-left: 4px solid #49cc90; }
         .channel.client { border-left-color: #61affe; }
+        .channel.danger { border-left-color: #f93e3e; }
         .badge { display: inline-block; padding: 3px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; color: #fff; }
         .badge.sub { background: #49cc90; }
         .badge.stomp { background: #7d8492; }
+        .badge.ep { background: #61affe; }
+        .badge.role { background: #fca130; }
+        .badge.role.manager { background: #9012fe; }
+        .badge.role.consultant { background: #49cc90; }
+        .badge.role.client { background: #61affe; }
         .path { font-family: 'Courier New', monospace; font-size: 15px; color: #333; margin-left: 12px; }
-        .desc { color: #666; font-size: 14px; margin: 12px 0; line-height: 1.5; }
+        .desc { color: #444; font-size: 14px; margin: 12px 0; line-height: 1.55; }
         .param-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
         .param-table th { text-align: left; padding: 8px; background: #f5f5f5; font-size: 13px; border-bottom: 2px solid #ddd; }
-        .param-table td { padding: 8px; font-size: 13px; border-bottom: 1px solid #eee; }
-        .param-table code { background: #f0f0f0; padding: 2px 6px; border-radius: 3px; font-size: 12px; }
+        .param-table td { padding: 8px; font-size: 13px; border-bottom: 1px solid #eee; vertical-align: top; }
         .event-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
         .event-table th { text-align: left; padding: 10px; background: #f5f5f5; font-size: 13px; border-bottom: 2px solid #ddd; }
         .event-table td { padding: 10px; font-size: 13px; border-bottom: 1px solid #eee; }
-        .event-badge { padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: bold; color: #fff; }
+        .event-badge { padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: bold; color: #fff; white-space: nowrap; }
         .ev-created { background: #49cc90; }
         .ev-waiting { background: #fca130; }
         .ev-escalated { background: #f93e3e; }
@@ -38,23 +43,71 @@
         .ev-reassigned { background: #9012fe; }
         .ev-reminded { background: #fca130; }
         pre { background: #263238; color: #eeffff; padding: 16px; border-radius: 6px; overflow-x: auto; font-size: 13px; line-height: 1.5; margin-top: 12px; }
-        .section-title { font-size: 20px; margin: 24px 0 12px; padding-bottom: 8px; border-bottom: 2px solid #49cc90; }
-        .info-box { background: #e8f5e9; border: 1px solid #c8e6c9; border-radius: 6px; padding: 12px 16px; margin: 12px 0; font-size: 14px; }
+        code.inline { background: #f0f0f0; padding: 2px 6px; border-radius: 3px; font-size: 12px; font-family: 'Courier New', monospace; }
+        .section-title { font-size: 20px; margin: 28px 0 12px; padding-bottom: 8px; border-bottom: 2px solid #49cc90; }
+        .info-box { background: #e8f5e9; border: 1px solid #c8e6c9; border-radius: 6px; padding: 14px 18px; margin: 12px 0; font-size: 14px; line-height: 1.6; }
+        .warn-box { background: #fff3e0; border: 1px solid #ffcc80; border-radius: 6px; padding: 14px 18px; margin: 12px 0; font-size: 14px; line-height: 1.6; }
+        .err-box { background: #ffebee; border: 1px solid #ef9a9a; border-radius: 6px; padding: 14px 18px; margin: 12px 0; font-size: 14px; line-height: 1.6; }
+        ul { margin: 8px 0 8px 24px; }
+        ul li { margin: 4px 0; }
     </style>
 </head>
 <body>
     <div class="topbar">
         <h1>RetailHub WebSocket API</h1>
         <a href="/swagger-ui.html">&larr; REST API (Swagger)</a>
+        <a href="/asyncapi.yaml" style="margin-left:auto;">AsyncAPI YAML &darr;</a>
     </div>
 
     <div class="container">
-        <div class="info-box">
-            <strong>Протокол:</strong> STOMP 1.2 over WebSocket + SockJS fallback<br>
-            <strong>Endpoint:</strong> <code id="ws-endpoint-direct">ws://&lt;host&gt;/ws</code> (через Gateway)
+
+        <h2 class="section-title">Endpoint-ы</h2>
+
+        <div class="card">
+            <div class="card-header">
+                <div>
+                    <span class="badge ep">EP</span>
+                    <span class="path" id="ws-native-url">wss://&lt;host&gt;/ws-native</span>
+                </div>
+                <span class="badge stomp">STOMP 1.2</span>
+            </div>
+            <div class="card-body">
+                <p class="desc"><strong>Чистый STOMP-over-WebSocket</strong> без SockJS. Для нативных мобильных клиентов
+                    (Android/iOS) и любых клиентов, у которых нет SockJS-обёртки. JWT передаётся в
+                    STOMP CONNECT-кадре в заголовке <code class="inline">Authorization: Bearer &lt;token&gt;</code>.</p>
+            </div>
         </div>
 
-        <h2 class="section-title">Каналы подписки</h2>
+        <div class="card">
+            <div class="card-header">
+                <div>
+                    <span class="badge ep">EP</span>
+                    <span class="path" id="ws-sockjs-url">https://&lt;host&gt;/ws</span>
+                </div>
+                <span class="badge stomp">STOMP 1.2 + SockJS</span>
+            </div>
+            <div class="card-body">
+                <p class="desc"><strong>SockJS-fallback</strong> для веб-клиента (browser). Подключается
+                    через <code class="inline">new SockJS('https://&lt;host&gt;/ws')</code>. Внутри SockJS сам выбирает
+                    транспорт (WebSocket / XHR-streaming / XHR-polling). JWT — также в STOMP CONNECT-кадре.</p>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <strong>Аутентификация (важно).</strong> JWT не передаётся в HTTP-заголовке WebSocket-handshake — Spring STOMP
+            его всё равно не читает. JWT кладётся в STOMP CONNECT-кадр:
+            <pre>CONNECT
+accept-version:1.2
+host:retailhub
+Authorization:Bearer eyJhbGciOiJIUzUxMiJ9...
+
+^@</pre>
+            Если JWT отсутствует или невалиден — соединение разрывается с STOMP ERROR-кадром.
+            Анонимный CONNECT (без Authorization) разрешён только для клиентских QR-сессий: такой пользователь
+            может подписаться <strong>только</strong> на <code class="inline">/queue/request/{clientSessionToken}</code>.
+        </div>
+
+        <h2 class="section-title">Авторизация SUBSCRIBE</h2>
 
         <div class="card channel">
             <div class="card-header">
@@ -62,14 +115,16 @@
                     <span class="badge sub">SUBSCRIBE</span>
                     <span class="path">/topic/store/{storeId}/requests</span>
                 </div>
-                <span class="badge stomp">STOMP</span>
+                <span class="badge role manager">MANAGER / ADMIN</span>
             </div>
             <div class="card-body">
-                <p class="desc">Обновления заявок магазина. Подписчик: <strong>менеджер</strong>.<br>
-                Получает уведомления при создании, ожидании, эскалации, назначении, завершении и переназначении заявок магазина.</p>
+                <p class="desc">Все обновления заявок магазина. Подписаться может только пользователь с ролью
+                    <strong>MANAGER</strong> или <strong>ADMIN</strong>, причём <code class="inline">{storeId}</code> в подписке
+                    должен совпадать с <code class="inline">storeId</code> в JWT. Любая попытка подписаться на чужой
+                    магазин или с ролью CONSULTANT возвращает STOMP ERROR.</p>
                 <table class="param-table">
                     <tr><th>Параметр</th><th>Тип</th><th>Описание</th></tr>
-                    <tr><td><code>storeId</code></td><td>UUID</td><td>ID магазина (из JWT claims)</td></tr>
+                    <tr><td><code class="inline">storeId</code></td><td>UUID</td><td>ID магазина (берётся из JWT claim <code class="inline">storeId</code>)</td></tr>
                 </table>
             </div>
         </div>
@@ -80,14 +135,21 @@
                     <span class="badge sub">SUBSCRIBE</span>
                     <span class="path">/topic/department/{departmentId}/requests</span>
                 </div>
-                <span class="badge stomp">STOMP</span>
+                <span class="badge role consultant">CONSULTANT</span>
             </div>
             <div class="card-body">
-                <p class="desc">Обновления заявок конкретного отдела. Подписчик: <strong>консультант</strong>.<br>
-                Получает уведомления о новых заявках, ожидании (WAITING) и переназначении.</p>
+                <p class="desc">Заявки конкретного отдела. Подписаться может:</p>
+                <ul>
+                    <li><strong>CONSULTANT</strong> — только если у него есть <em>делегированная компетенция</em>
+                        на этот отдел (запись в матрице <code class="inline">user_departments</code>); если консультант
+                        не работает в этом отделе — подписка отклоняется с STOMP ERROR.</li>
+                    <li><strong>MANAGER / ADMIN</strong> — на любой отдел своего магазина без ограничений.</li>
+                </ul>
+                <p class="desc">Консультант, открывающий смену в нескольких отделах, должен сделать
+                    <strong>отдельный SUBSCRIBE на каждый</strong> отдел из своего списка компетенций.</p>
                 <table class="param-table">
                     <tr><th>Параметр</th><th>Тип</th><th>Описание</th></tr>
-                    <tr><td><code>departmentId</code></td><td>UUID</td><td>ID отдела</td></tr>
+                    <tr><td><code class="inline">departmentId</code></td><td>UUID</td><td>ID отдела из ответа <code class="inline">GET /api/v1/auth/me</code> (поле <code class="inline">departments[].id</code>)</td></tr>
                 </table>
             </div>
         </div>
@@ -98,14 +160,15 @@
                     <span class="badge sub">SUBSCRIBE</span>
                     <span class="path">/queue/request/{clientSessionToken}</span>
                 </div>
-                <span class="badge stomp">STOMP</span>
+                <span class="badge role client">CLIENT (без JWT)</span>
             </div>
             <div class="card-body">
-                <p class="desc">Статус конкретной заявки. Подписчик: <strong>клиент</strong> (после сканирования QR).<br>
-                Получает обновления жизненного цикла заявки (создание, ожидание, эскалация, назначение, завершение, отмена, переназначение). Заменяет polling <code>GET /requests/{id}?session=</code>.</p>
+                <p class="desc">Статус конкретной заявки клиента. Подписывается клиент, отсканировавший QR.
+                    Авторизация — по знанию <code class="inline">clientSessionToken</code> (UUID, выдаётся в ответе
+                    <code class="inline">POST /api/v1/requests</code>). JWT для подписки не нужен.</p>
                 <table class="param-table">
                     <tr><th>Параметр</th><th>Тип</th><th>Описание</th></tr>
-                    <tr><td><code>clientSessionToken</code></td><td>UUID</td><td>Клиентская сессионная метка заявки (из ответа POST /requests)</td></tr>
+                    <tr><td><code class="inline">clientSessionToken</code></td><td>UUID</td><td>Сессионная метка заявки</td></tr>
                 </table>
             </div>
         </div>
@@ -122,26 +185,26 @@
             <tr>
                 <td><span class="event-badge ev-waiting">REQUEST_WAITING</span></td>
                 <td>store, department, client</td>
-                <td>Заявка ждёт > 3 мин, повторное уведомление консультантам</td>
+                <td>Заявка ждёт &gt; 3 мин — повторное уведомление консультантам</td>
             </tr>
             <tr>
                 <td><span class="event-badge ev-escalated">REQUEST_ESCALATED</span></td>
                 <td>store</td>
-                <td>SLA нарушен (> 5 мин), уведомление менеджеру</td>
+                <td>SLA нарушен (&gt; 5 мин), эскалация на менеджера</td>
             </tr>
             <tr>
                 <td><span class="event-badge ev-assigned">REQUEST_ASSIGNED</span></td>
-                <td>store, client</td>
-                <td>Консультант взял заявку</td>
+                <td>store, department, client</td>
+                <td>Консультант взял заявку (отдел получает событие, чтобы остальные консультанты убрали её из списка ожидающих)</td>
             </tr>
             <tr>
                 <td><span class="event-badge ev-completed">REQUEST_COMPLETED</span></td>
-                <td>client</td>
+                <td>store, department, client</td>
                 <td>Обслуживание завершено</td>
             </tr>
             <tr>
                 <td><span class="event-badge ev-canceled">REQUEST_CANCELED</span></td>
-                <td>store, client</td>
+                <td>store, department, client</td>
                 <td>Клиент отменил заявку</td>
             </tr>
             <tr>
@@ -156,47 +219,73 @@
             </tr>
         </table>
 
-        <h2 class="section-title">Формат сообщения</h2>
+        <h2 class="section-title">Формат payload</h2>
         <pre>{
-  "eventType": "REQUEST_ASSIGNED",
-  "requestId": "a1b2c3d4-...",
-  "storeId": "1111-...",
-  "departmentId": "2222-...",
-  "departmentName": "Electronics",
-  "status": "ASSIGNED",
-  "assignedUserId": "4444-...",
-  "assignedUserName": "Test Consultant",
-  "clientSessionToken": "5555-...",
+  "event_type": "REQUEST_ASSIGNED",
+  "request_id": "a1b2c3d4-...",
+  "store_id":   "1111-...",
+  "department_id":   "2222-...",
+  "department_name": "Electronics",
+  "status":          "ASSIGNED",
+  "assigned_user_id":   "4444-...",
+  "assigned_user_name": "Test Consultant",
+  "client_session_token": "5555-...",
   "timestamp": 1712116800000
 }</pre>
 
-        <h2 class="section-title">Пример подключения (JavaScript)</h2>
-        <pre id="ws-example">const socket = new SockJS(window.location.origin + '/ws');
-const stompClient = Stomp.over(socket);
+        <h2 class="section-title">Пример: Web (SockJS)</h2>
+        <pre>const sock = new SockJS('https://retailhub.example.com/ws');
+const stomp = StompJs.Client.over(sock);
 
-stompClient.connect({}, () =&gt; {
+stomp.connectHeaders = { Authorization: 'Bearer ' + accessToken };
+stomp.onConnect = () =&gt; {
     // Менеджер: все заявки магазина
-    stompClient.subscribe('/topic/store/1111-.../requests', (msg) =&gt; {
-        const update = JSON.parse(msg.body);
-        console.log('Store update:', update.eventType, update.status);
+    stomp.subscribe('/topic/store/' + storeId + '/requests', (msg) =&gt; {
+        const upd = JSON.parse(msg.body);
+        console.log('store:', upd.event_type, upd.status);
     });
+};
+stomp.activate();</pre>
 
-    // Консультант: заявки своего отдела
-    stompClient.subscribe('/topic/department/2222-.../requests', (msg) =&gt; {
-        const update = JSON.parse(msg.body);
-        console.log('Dept update:', update.eventType, update.status);
-    });
+        <h2 class="section-title">Пример: Android / Kotlin (Krossbow / OkHttp)</h2>
+        <pre>val client = StompClient(OkHttpWebSocketClient())
+val session = client.connect(
+    url = "wss://retailhub.example.com/ws-native",
+    customStompConnectHeaders = mapOf("Authorization" to "Bearer $accessToken")
+)
 
-                    // Клиент: статус своей заявки (по clientSessionToken)
-                    stompClient.subscribe('/queue/request/5555-...', (msg) =&gt; {
-        const update = JSON.parse(msg.body);
-        console.log('My request:', update.status);
-    });
-});</pre>
+// Консультант: подписки только на свои отделы (departmentIds из /api/v1/auth/me)
+for (deptId in myDepartmentIds) {
+    val sub = session.subscribeText("/topic/department/$deptId/requests")
+    sub.collect { frame -&gt;
+        val update = json.decodeFromString&lt;RequestUpdate&gt;(frame)
+        // ...
+    }
+}</pre>
+
+        <div class="warn-box">
+            <strong>Внимание для нативного клиента.</strong> Используй endpoint <code class="inline">/ws-native</code>,
+            а не <code class="inline">/ws</code>. <code class="inline">/ws</code> требует SockJS-обёртку и для чистого
+            WebSocket-клиента не работает (handshake пройдёт, но соединение закроется с PROTOCOL_ERROR сразу
+            после CONNECT).
+        </div>
+
+        <h2 class="section-title">Возможные STOMP ERROR</h2>
+
+        <table class="event-table">
+            <tr><th>Сообщение</th><th>Когда возникает</th></tr>
+            <tr><td>Invalid JWT token</td><td>JWT в CONNECT просрочен / подпись невалидна</td></tr>
+            <tr><td>SUBSCRIBE на ... требует авторизации (нет JWT)</td><td>SUBSCRIBE на /topic/* без JWT в CONNECT</td></tr>
+            <tr><td>Менеджер может подписаться только на свой магазин</td><td>storeId в подписке ≠ storeId в JWT</td></tr>
+            <tr><td>У консультанта ... нет делегированной компетенции на отдел</td><td>Консультант пытается подписаться на чужой отдел</td></tr>
+            <tr><td>SUBSCRIBE на ... запрещён: неизвестный destination</td><td>Подписка на путь, не подпадающий ни под /topic/store/{}/requests, ни /topic/department/{}/requests, ни /queue/request/{}</td></tr>
+        </table>
+
     </div>
     <script>
-        const wsProtocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-        document.getElementById('ws-endpoint-direct').textContent = wsProtocol + window.location.host + '/ws';
+        const wsHost = window.location.host;
+        document.getElementById('ws-native-url').textContent = 'wss://' + wsHost + '/ws-native';
+        document.getElementById('ws-sockjs-url').textContent = (window.location.protocol === 'https:' ? 'https://' : 'http://') + wsHost + '/ws';
     </script>
 </body>
 </html>
